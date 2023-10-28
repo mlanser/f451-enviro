@@ -113,6 +113,13 @@ FONT_SIZE_LG = 20       # Large font size
 
 ROTATE_90 = 90          # Rotate 90 degrees    
 
+BME280_TEMP_MIN = -40   # Unit: C
+BME280_TEMP_MAX = 85    
+BME280_PRESS_MIN = 300  # Unit: hPa
+BME280_PRESS_MAX = 1100
+BME280_HUMID_MIN = 0    # Unit: %
+BME280_HUMID_MAX = 100
+
 
 # =========================================================
 #    K E Y W O R D S   F O R   C O N F I G   F I L E S

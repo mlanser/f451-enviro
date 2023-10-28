@@ -11,6 +11,22 @@ from typing import Any
 
 
 # =========================================================
+#              M I S C .   C O N S T A N T S
+# =========================================================
+BME280_TEMP_MIN = -40   # Unit: C
+BME280_TEMP_MAX = 85    
+BME280_PRESS_MIN = 300  # Unit: hPa
+BME280_PRESS_MAX = 1100
+BME280_HUMID_MIN = 0    # Unit: %
+BME280_HUMID_MAX = 100
+
+LTR559_LUX_MIN = 0.01
+LTR559_LUX_MAX = 64000.0
+
+PMS5003_MIN = 0.3       # Unit: um
+PMS5003_MAX = 10.1      # [>0.3, >0.5, >1.0, >2.5, >10]
+
+# =========================================================
 #                H E L P E R   C L A S S E S
 # =========================================================
 class FakeSubST7735:

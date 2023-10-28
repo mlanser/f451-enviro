@@ -1,8 +1,8 @@
-# f451 Labs Uploader module
+# f451 Labs Enviro+ module
 
 ## Overview
 
-The *f451 Labs Uploader* module encapsulates the *Adafruit IO* REST and MQTT clients, as well as the *Arduino Cloud* client within a single class. Most *f451 Labs* projects upload to and/or receive data from one or both of these services, and the `Uploader` class simplifies these tasks by standardizing send and receive methods, and so on.
+The *f451 Labs Enviro+* module encapsulates the drivers for the [*Pimoroni Enviro+* HAT](https://shop.pimoroni.com/products/enviro?variant=31155658457171) within a single class. This module provides a standard set of methods to read sensor data and display content to the onboard 0.96" LCD (160x80).
 
 ## Install
 
@@ -12,8 +12,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 This module is dependent on the following libraries:
 
-- [logging](https://docs.python.org/3/howto/logging.html)
-- [pprint](https://docs.python.org/3/library/pprint.html)
+- [enviroplus-python](https://github.com/pimoroni/enviroplus-python/)
 
 ### Installing from Github using `pip`
 
@@ -22,13 +21,13 @@ You can use `pip install` to install this module directly from Github as follows
 Using HTTPS:
 
 ```bash
-$ pip install 'f451-uploader @ git+https://github.com/mlanser/f451-uploader.git'
+$ pip install 'f451-enviro @ git+https://github.com/mlanser/f451-enviro.git'
 ```
 
 Using SSH:
 
 ```bash
-$ pip install 'f451-uploader @ git+ssh://git@github.com:mlanser/f451-uploader.git'
+$ pip install 'f451-enviro @ git+ssh://git@github.com:mlanser/f451-enviro.git'
 ```
 
 ## How to use
@@ -37,8 +36,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 ```Python
 # ??? ...
-uploader = Uploader()
+enviro = Enviro()
 
 # ... ???
-uploader = Uploader(....)
+enviro = Enviro(....)
 ```

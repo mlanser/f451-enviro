@@ -1,0 +1,30 @@
+# =========================================================
+#                S E T T I N G S . T O M L
+# ---------------------------------------------------------
+# Please see README.md for instructions on how to use 
+# these settings and their effects
+# =========================================================
+
+# -- Adafruit IO ------------------------------------------
+AIO_USERNAME = "<ADAFRUIT IO USERNAMR>"
+AIO_KEY = "<ADAFRUIT IO KEY>"
+AIO_UPLOAD = "yes"      # [yes|no|force]
+
+FEED_TEMPS = "<ADAFRUIT IO FEED KEY FOR TEMPERATURE DATA>"
+FEED_PRESS = "<ADAFRUIT IO FEED KEY FOR PRESSURE DATA>"
+FEED_HUMID = "<ADAFRUIT IO FEED KEY FOR HUMIDITY DATA>"
+
+# -- Misc. Settings for Data Management -------------------
+UNIT_TEMPS = "C"        # [C|F|K]
+
+# -- Misc. Application Defaults ---------------------------
+ROTATION = 270          # [0, 90, 180, 270] - default rotation for Enviro+ LCD
+DISPLAY = 10            # [0..10] - default display mode
+DELAY = 600             # Delay in seconds between uploads to Adafruit IO
+WAIT = 1                # Delay in seconds between sensor reads
+THROTTLE = 120          # Additional delay in seconds on 'ThottlingError'
+PROGRESS = "on"         # [on|off] - show upload progress bar on LCD
+SLEEP = 600             # Delay in seconds until screen is blanked
+
+LOGLVL = 10             # [10|20|30|40|50] - logging level
+LOGFILE = "<FILE NAME>"

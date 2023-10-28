@@ -38,3 +38,88 @@ def test_dummy(valid_str):
     This is only a placeholder test case.
     """
     assert valid_str == "Hello world"
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_get_CPU_temp(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_get_proximity(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_get_lux(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_get_pressure(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_get_humidity(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_get_temperature(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_get_gas_data(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_get_particles(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_display_init(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_display_on(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_display_off(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_display_blank(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_display_reset(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_display_sparkle(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_display_as_graph(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_display_as_text(mocker):
+    pass
+
+
+@pytest.mark.skip(reason="TO DO")
+def test_display_progress(mocker):
+    pass

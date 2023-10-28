@@ -1,9 +1,9 @@
 """Mock version of Pimoroni Enviro+ library.
 
 This mock version of the Pimoroni Enviro+ library can be 
-used during testing, etc. It mimicks the Enviro+ sensors 
-by generating random values within the limits of the 
-actual hardware.
+used when running the demo on a device without access to
+the Enviro+ HAT. It mimicks the Enviro+ sensors by generating
+random values within the limits of the actual hardware.
 """
 
 import random
@@ -22,17 +22,22 @@ BME280_HUMID_MAX = 100
 
 LTR559_LUX_MIN = 0.01
 LTR559_LUX_MAX = 64000.0
+LTR559_PROX = 1500
 
 PMS5003_MIN = 0.3       # Unit: um
 PMS5003_MAX = 10.1      # [>0.3, >0.5, >1.0, >2.5, >10]
+
+ST7735_WIDTH = 160
+ST7735_HEIGHT = 80
+
 
 # =========================================================
 #                H E L P E R   C L A S S E S
 # =========================================================
 class FakeSubST7735:
     def __init__(self, *args, **kwargs):
-        self.width = 160
-        self.height = 80
+        self.width = ST7735_WIDTH
+        self.height = ST7735_HEIGHT
 
     def begin(self):
         pass    
@@ -48,10 +53,10 @@ class FakeLTR559:
         self.active = True
 
     def get_proximity(self):
-        return random.randint(1500, 1501)
+        return random.randint(LTR559_PROX, LTR559_PROX + 1)
 
     def get_lux(self):
-        return random.randint(0, 1500)
+        return random.randint(1, int(LTR559_LUX_MAX)*100) / 100
 
 
 class FakeSMBus:
@@ -64,20 +69,20 @@ class FakeBME280:
         self.active = True
 
     def get_temperature(self):
-        return random.randint(const.MIN_TEMP * 10, const.MAX_TEMP * 10) / 10
+        return random.randint(BME280_TEMP_MIN * 10, BME280_TEMP_MAX * 10) / 10
     
     def get_pressure(self):
-        return random.randint(const.MIN_PRESS * 10, const.MAX_PRESS * 10) / 10
+        return random.randint(BME280_PRESS_MIN * 10, BME280_PRESS_MAX * 10) / 10
     
     def get_humidity(self):
-        return random.randint(const.MIN_HUMID * 10, const.MAX_HUMID * 10) / 10
+        return random.randint(BME280_HUMID_MIN * 10, BME280_HUMID_MAX * 10) / 10
 
 
 class FakeGasData:
     def __init__(self):
-        self.oxidising = random.randint(10000, 24000)
-        self.reducing = random.randint(10000, 24000)
-        self.nh3 = random.randint(10000, 24000)
+        self.oxidising = random.randint(10000, 24000)   # TO DO: fix magic num
+        self.reducing = random.randint(10000, 24000)    # TO DO: fix magic num
+        self.nh3 = random.randint(10000, 24000)         # TO DO: fix magic num
 
 
 class FakeEnviroPlus:
@@ -90,7 +95,7 @@ class FakeEnviroPlus:
 
 class FakePMS5003Data():
     def pm_ug_per_m3(self, *args):
-        return random.randint(1, 12) / 10
+        return random.randint(int(PMS5003_MIN * 10), int(PMS5003_MAX * 10)) / 10
     
 
 class FakePMS5003:

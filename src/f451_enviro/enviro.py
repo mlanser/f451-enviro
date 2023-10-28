@@ -8,6 +8,9 @@ and functions supported by underlying libraries, and also
 keeps track of core counters, flags, etc.
 
 Dependencies:
+ - fonts: https://pypi.org/project/fonts/
+ - font-roboto: https://pypi.org/project/font-roboto/
+ - Pillow: https://pypi.org/project/Pillow/
  - Pimoroni Enviro+ library: https://github.com/pimoroni/enviroplus-python/  
 """
 
@@ -28,7 +31,7 @@ from subprocess import PIPE, Popen
 try:
     import ST7735
 except ImportError:
-    from mocks.fake_device import FakeST7735 as ST7735
+    from .fake_HAT import FakeST7735 as ST7735
 
 # Support for proximity sensor
 try:
@@ -39,7 +42,7 @@ try:
     except ImportError:
         import ltr559
 except ImportError:
-    from mocks.fake_device import FakeLTR559 as ltr559
+    from .fake_HAT import FakeLTR559 as ltr559
 
 # Support SMBus
 try:
@@ -48,25 +51,37 @@ try:
     except ImportError:
         from smbus import SMBus
 except ImportError:
-    from mocks.fake_device import FakeSMBus as SMBus
+    from .fake_HAT import FakeSMBus as SMBus
 
 # Support temperature/pressure/humidity sensor
 try:
     from bme280 import BME280
 except ImportError:
-    from mocks.fake_device import FakeBME280 as BME280
+    from .fake_HAT import FakeBME280 as BME280
 
 # Support air quality sensor
 try:
     from pms5003 import PMS5003, ReadTimeoutError as pmsReadTimeoutError, SerialTimeoutError
 except ImportError:
-    from mocks.fake_device import FakePMS5003 as PMS5003, FakeReadTimeoutError as pmsReadTimeoutError, FakeSerialTimeoutError as SerialTimeoutError
+    from .fake_HAT import FakePMS5003 as PMS5003, FakeReadTimeoutError as pmsReadTimeoutError, FakeSerialTimeoutError as SerialTimeoutError
 
 # Support Enviro+ gas sensor
 try:
     from enviroplus import gas
 except ImportError:
-    from mocks.fake_device import FakeEnviroPlus as gas
+    from .fake_HAT import FakeEnviroPlus as gas
+
+__all__ = [
+    "Enviro",
+    "KWD_ROTATION",
+    "KWD_DISPLAY",
+    "KWD_PROGRESS",
+    "KWD_SLEEP",
+    "KWD_DISPL_TOP_X",
+    "KWD_DISPL_TOP_Y",
+    "KWD_DISPL_TOP_BAR",
+    "KWD_MAX_LEN_CPU_TEMPS",
+]
 
 
 # =========================================================

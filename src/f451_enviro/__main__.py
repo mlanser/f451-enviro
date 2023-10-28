@@ -23,7 +23,7 @@ except ModuleNotFoundError:
 #                    D E M O   A P P
 # =========================================================
 def main():
-    pass
+    print("Beep boop!")
 
 
 if __name__ == "__main__":

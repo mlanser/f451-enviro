@@ -39,7 +39,16 @@ class FakeSubST7735:
         self.width = ST7735_WIDTH
         self.height = ST7735_HEIGHT
 
-    def begin(self):
+    @staticmethod
+    def begin():
+        pass    
+
+    @staticmethod
+    def display_on():
+        pass    
+
+    @staticmethod
+    def display_off():
         pass    
 
 
@@ -101,7 +110,12 @@ class FakeEnviroPlus:
 
 
 class FakePMS5003Data():
-    def pm_ug_per_m3(self, *args):
+    def __init__(self, *args, **kwargs):
+        self.active = True
+        self.data = float(PMS5003_MIN)
+
+    @staticmethod
+    def pm_ug_per_m3(*args):
         return random.randint(int(PMS5003_MIN * 10), int(PMS5003_MAX * 10)) / 10
     
 
@@ -109,7 +123,12 @@ class FakePMS5003:
     def __init__(self, *args, **kwargs):
         self.active = True
 
-    def read(self):
+    @staticmethod
+    def reset():
+        pass
+    
+    @staticmethod
+    def read():
         return FakePMS5003Data()
     
     

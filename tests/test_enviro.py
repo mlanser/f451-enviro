@@ -24,6 +24,8 @@ except ModuleNotFoundError:
 # =========================================================
 #              M I S C .   C O N S T A N T S
 # =========================================================
+KWD_TST_VAL = "TST_VAL"
+
 BME280_TEMP_MIN = -40   # Unit: C
 BME280_TEMP_MAX = 85    
 BME280_PRESS_MIN = 300  # Unit: hPa
@@ -51,7 +53,27 @@ def valid_str():
 
 
 @pytest.fixture(scope="session")
-def default_device():
+def config():
+    settings = "src/f451_enviro/settings.toml"
+    try:
+        with open(Path(__file__).parent.parent.joinpath(settings), mode="rb") as fp:
+            config = tomllib.load(fp)
+    except tomllib.TOMLDecodeError:
+        pytest.fail("Invalid 'settings.toml' file")      
+    except FileNotFoundError:
+        pytest.fail("Missing 'settings.toml' file")      
+
+    return config
+
+
+@pytest.fixture(scope="session")
+def device_default():
+    device = Enviro()
+    return device
+
+
+@pytest.fixture(scope="session")
+def device_config(config):
     device = Enviro()
     return device
 
@@ -59,23 +81,6 @@ def default_device():
 # =========================================================
 #                    T E S T   C A S E S
 # =========================================================
-# def test_person_class_with_mock(mocker):
-#     """
-#     Function to test Person class with mock
-#     :param mocker: pytest-mock fixture
-#     :return: None
-#     """
-#     fake_response = {"name": "FAKE_NAME", "age": "FAKE_AGE", "address": "FAKE_ADDRESS"}
-#     # Mock the 'Person' class to return a mock object.
-#     mocker.patch(
-#         "mock_examples.core.Person.get_person_json", return_value=fake_response
-#     )
-
-#     # Initalize the Person class with fresh data.
-#     person = Person(name="Eric", age=25, address="123 Farmville Rd")
-#     actual = person.get_person_json()
-#     assert actual == fake_response
-
 def test_dummy(valid_str):
     """Dummy test case.
     
@@ -84,118 +89,182 @@ def test_dummy(valid_str):
     assert valid_str == "Hello world"
 
 
-def test_get_CPU_temp_mock(default_device, mocker):
+def test_get_CPU_temp_mock(device_default, mocker):
     mocker.patch("src.f451_enviro.enviro.Enviro.get_CPU_temp", return_value=BME280_TEMP_MIN)
-    cpuTemp = default_device.get_CPU_temp()
+    cpuTemp = device_default.get_CPU_temp()
     assert cpuTemp == BME280_TEMP_MIN
 
 
 @pytest.mark.hardware
-def test_get_CPU_temp(default_device):
+def test_get_CPU_temp(device_default):
     try:
-        cpuTemp = default_device.get_CPU_temp()
+        cpuTemp = device_default.get_CPU_temp()
     except FileNotFoundError:
         pass
     else:        
         assert cpuTemp >= float(BME280_TEMP_MIN)
 
 
-def test_get_proximity_mock(default_device, mocker):
+def test_get_proximity_mock(device_default, mocker):
     mocker.patch("src.f451_enviro.enviro.Enviro.get_proximity", return_value=1500)
-    proximity = default_device.get_proximity()
+    proximity = device_default.get_proximity()
     assert proximity == 1500
 
 
 @pytest.mark.hardware
-def test_get_proximity(default_device):
-    proximity = default_device.get_proximity()
+def test_get_proximity(device_default):
+    proximity = device_default.get_proximity()
     assert proximity >= float(LTR559_LUX_MIN)
 
 
-def test_get_lux_mock(default_device, mocker):
+def test_get_lux_mock(device_default, mocker):
     mocker.patch("src.f451_enviro.enviro.Enviro.get_lux", return_value=LTR559_LUX_MIN)
-    lux = default_device.get_lux()
+    lux = device_default.get_lux()
     assert lux == LTR559_LUX_MIN
 
 
 @pytest.mark.hardware
-def test_get_lux(default_device):
-    lux = default_device.get_lux()
+def test_get_lux(device_default):
+    lux = device_default.get_lux()
     assert lux >= float(LTR559_LUX_MIN)
 
 
-def test_get_pressure_mock(default_device, mocker):
+def test_get_pressure_mock(device_default, mocker):
     mocker.patch("src.f451_enviro.enviro.Enviro.get_pressure", return_value=BME280_PRESS_MIN)
-    pressure = default_device.get_pressure()
+    pressure = device_default.get_pressure()
     assert pressure == BME280_PRESS_MIN
 
 
 @pytest.mark.hardware
-def test_get_pressure(default_device):
-    pressure = default_device.get_pressure()
+def test_get_pressure(device_default):
+    pressure = device_default.get_pressure()
     assert pressure >= float(BME280_PRESS_MIN)
 
 
-@pytest.mark.skip(reason="TO DO")
-def test_get_humidity(mocker):
+def test_get_humidity_mock(device_default, mocker):
+    mocker.patch("src.f451_enviro.enviro.Enviro.get_humidity", return_value=BME280_HUMID_MIN)
+    humidity = device_default.get_humidity()
+    assert humidity == BME280_HUMID_MIN
+
+
+@pytest.mark.hardware
+def test_get_humidity(device_default):
+    humidity = device_default.get_humidity()
+    assert humidity >= float(BME280_HUMID_MIN)
+
+
+def test_get_temperature_mock(device_default, mocker):
+    mocker.patch("src.f451_enviro.enviro.Enviro.get_temperature", return_value=BME280_TEMP_MIN)
+    temperature = device_default.get_temperature()
+    assert temperature == BME280_TEMP_MIN
+
+
+@pytest.mark.hardware
+def test_get_temperature(device_default):
+    temperature = device_default.get_temperature()
+    assert temperature >= float(BME280_TEMP_MIN)
+
+
+def test_get_gas_data_mock(device_default, mocker):
+    class FakeGasData:
+        def __init__(self):
+            self.oxidising = 24000
+            self.reducing = 24000
+            self.nh3 = 24000
+
+    mocker.patch("src.f451_enviro.enviro.Enviro.get_gas_data", return_value=FakeGasData())
+    data = device_default.get_gas_data()
+    assert data.oxidising == 24000
+
+
+@pytest.mark.hardware
+def test_get_gas_data(device_default):
+    data = device_default.get_gas_data()
+    assert float(data.oxidising) >= 0.0
+
+
+def test_get_particles_mock(device_default, mocker):
+    class FakeParticleData:
+        def __init__(self):
+            self.data = float(PMS5003_MIN)
+
+    mocker.patch("src.f451_enviro.enviro.Enviro.get_particles", return_value=FakeParticleData())
+    particles = device_default.get_particles()
+    assert particles.data == float(PMS5003_MIN)
+
+
+@pytest.mark.hardware
+def test_get_particles(device_default):
+    particles = device_default.get_particles()
+    assert particles.data >= float(PMS5003_MIN)
+
+
+def test_display_init_mock(device_config, mocker):
+    testDev = device_config
+    mocker.patch("src.f451_enviro.enviro.Enviro.display_init")
+    testDev.display_init()
+    testDev.display_init.assert_called_once()
+
+
+@pytest.mark.hardware
+def test_display_init(device_config):
+    testDev = device_config
+    assert testDev._img is None
+    assert testDev._draw is None
+    assert testDev._fontLG is None
+    assert testDev._fontSM is None
+
+    testDev.display_init()
+    assert testDev._img is not None
+    assert testDev._draw is not None
+    assert testDev._fontLG is not None
+    assert testDev._fontSM is not None
+
+
+@pytest.mark.skip(reason="Is it worth testing?")
+def test_display_on_mock(device_config, mocker):
+    testDev = device_config
+    mocker.patch("src.f451_enviro.enviro.Enviro.display_on")
+    testDev.display_on()
+    testDev.display_on.assert_called_once()
+
+
+@pytest.mark.skip(reason="Is it worth testing?")
+def test_display_off_mock(device_config, mocker):
+    testDev = device_config
+    mocker.patch("src.f451_enviro.enviro.Enviro.display_off")
+    testDev.display_off()
+    testDev.display_off.assert_called_once()
+
+
+@pytest.mark.skip(reason="Is it worth testing?")
+def test_display_blank_mock(device_config, mocker):
+    testDev = device_config
+    mocker.patch("src.f451_enviro.enviro.Enviro.display_blank")
+    testDev.display_blank()
+    testDev.display_blank.assert_called_once()
+
+
+@pytest.mark.skip(reason="Is it worth testing?")
+def test_display_reset_mock(device_config, mocker):
     pass
 
 
 @pytest.mark.skip(reason="TO DO")
-def test_get_temperature(mocker):
+def test_display_sparkle_mock(device_config, mocker):
     pass
 
 
 @pytest.mark.skip(reason="TO DO")
-def test_get_gas_data(mocker):
+def test_display_as_graph_mock(device_config, mocker):
     pass
 
 
 @pytest.mark.skip(reason="TO DO")
-def test_get_particles(mocker):
+def test_display_as_text_mock(device_config, mocker):
     pass
 
 
 @pytest.mark.skip(reason="TO DO")
-def test_display_init(mocker):
-    pass
-
-
-@pytest.mark.skip(reason="TO DO")
-def test_display_on(mocker):
-    pass
-
-
-@pytest.mark.skip(reason="TO DO")
-def test_display_off(mocker):
-    pass
-
-
-@pytest.mark.skip(reason="TO DO")
-def test_display_blank(mocker):
-    pass
-
-
-@pytest.mark.skip(reason="TO DO")
-def test_display_reset(mocker):
-    pass
-
-
-@pytest.mark.skip(reason="TO DO")
-def test_display_sparkle(mocker):
-    pass
-
-
-@pytest.mark.skip(reason="TO DO")
-def test_display_as_graph(mocker):
-    pass
-
-
-@pytest.mark.skip(reason="TO DO")
-def test_display_as_text(mocker):
-    pass
-
-
-@pytest.mark.skip(reason="TO DO")
-def test_display_progress(mocker):
+def test_display_progress_mock(device_config, mocker):
     pass

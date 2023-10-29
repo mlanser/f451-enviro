@@ -253,17 +253,31 @@ class Enviro:
 
         return st7735
 
-    def get_CPU_temp(self):
+    def get_CPU_temp(self, strict=True):
         """Get CPU temp
 
         We use this for compensating temperature reads from BME280 sensor.
 
         Based on code from Enviro+ example 'luftdaten_combined.py'
-        """
-        process = Popen(['vcgencmd', 'measure_temp'], stdout=PIPE, universal_newlines=True)
-        output, _error = process.communicate()
-        return float(output[output.index('=') + 1:output.rindex("'")])
 
+        Args:
+            strict:
+                If 'True', then we raise an exception, else we simply 
+                return 'None' if the exceptions is 'FileNotFoundError'
+        Raises:
+            Same expetions as 'Popen'
+        """
+        try:
+            process = Popen(['vcgencmd', 'measure_temp'], stdout=PIPE, universal_newlines=True)
+            output, _error = process.communicate()
+            return float(output[output.index('=') + 1:output.rindex("'")])
+        
+        except FileNotFoundError:
+            if not strict:
+                return None
+            else:
+                raise
+        
     def get_proximity(self):
         """Get proximity from LTR559 sensor"""
         return self._LTR559.get_proximity()

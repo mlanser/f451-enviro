@@ -35,7 +35,7 @@ ST7735_HEIGHT = 80
 #                H E L P E R   C L A S S E S
 # =========================================================
 class FakeSubST7735:
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.width = ST7735_WIDTH
         self.height = ST7735_HEIGHT
 
@@ -44,18 +44,21 @@ class FakeSubST7735:
 
 
 class FakeST7735:
-    def __init__(self, *args, **kwargs):
-        self.ST7735 = FakeSubST7735()
+    @staticmethod
+    def ST7735(*args, **kwargs):
+        return FakeSubST7735()
 
 
 class FakeLTR559:
     def __init__(self, *args, **kwargs):
         self.active = True
 
-    def get_proximity(self):
+    @staticmethod
+    def get_proximity():
         return random.randint(LTR559_PROX, LTR559_PROX + 1)
 
-    def get_lux(self):
+    @staticmethod
+    def get_lux():
         return random.randint(1, int(LTR559_LUX_MAX)*100) / 100
 
 
@@ -68,13 +71,16 @@ class FakeBME280:
     def __init__(self, *args, **kwargs):
         self.active = True
 
-    def get_temperature(self):
+    @staticmethod
+    def get_temperature():
         return random.randint(BME280_TEMP_MIN * 10, BME280_TEMP_MAX * 10) / 10
     
-    def get_pressure(self):
+    @staticmethod
+    def get_pressure():
         return random.randint(BME280_PRESS_MIN * 10, BME280_PRESS_MAX * 10) / 10
     
-    def get_humidity(self):
+    @staticmethod
+    def get_humidity():
         return random.randint(BME280_HUMID_MIN * 10, BME280_HUMID_MAX * 10) / 10
 
 
@@ -89,7 +95,8 @@ class FakeEnviroPlus:
     def __init__(self, *args, **kwargs):
         self.active = True
 
-    def read_all(self):
+    @staticmethod
+    def read_all():
         return FakeGasData()
 
 

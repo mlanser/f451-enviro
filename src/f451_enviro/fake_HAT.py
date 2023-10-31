@@ -95,9 +95,9 @@ class FakeBME280:
 
 class FakeGasData:
     def __init__(self):
-        self.oxidising = random.randint(10000, 24000)   # TO DO: fix magic num
-        self.reducing = random.randint(10000, 24000)    # TO DO: fix magic num
-        self.nh3 = random.randint(10000, 24000)         # TO DO: fix magic num
+        self.oxidising = random.randint(10000, 24000)   # TODO: fix magic num
+        self.reducing = random.randint(10000, 24000)    # TODO: fix magic num
+        self.nh3 = random.randint(10000, 24000)         # TODO: fix magic num
 
 
 class FakeEnviroPlus:

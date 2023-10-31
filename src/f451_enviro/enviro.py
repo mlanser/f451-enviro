@@ -80,7 +80,6 @@ __all__ = [
     "KWD_DISPL_TOP_X",
     "KWD_DISPL_TOP_Y",
     "KWD_DISPL_TOP_BAR",
-    "KWD_MAX_LEN_CPU_TEMPS",
 ]
 
 
@@ -139,7 +138,6 @@ KWD_SLEEP = "SLEEP"
 KWD_DISPL_TOP_X = "TOP_X"
 KWD_DISPL_TOP_Y = "TOP_Y"
 KWD_DISPL_TOP_BAR = "TOP_BAR"
-KWD_MAX_LEN_CPU_TEMPS = "CPU_TEMPS"
 
 
 # =========================================================
@@ -220,8 +218,9 @@ class Enviro:
         self.displRotation = settings.get(KWD_ROTATION, DEF_ROTATION)
         self.displMode = settings.get(KWD_DISPLAY, DEF_DISPL_MODE)
         self.displProgress = bool(settings.get(KWD_PROGRESS, STATUS_ON))
-        self.displSleep = settings.get(KWD_SLEEP, DEF_SLEEP)
 
+        self.displSleep = self.displSleepCntr = settings.get(KWD_SLEEP, DEF_SLEEP)
+        
         self.displTopX = settings.get(KWD_DISPL_TOP_X, DISPL_TOP_X)
         self.displTopY = settings.get(KWD_DISPL_TOP_Y, DISPL_TOP_Y)
         self.displTopBar = settings.get(KWD_DISPL_TOP_BAR, DISPL_TOP_BAR)
@@ -263,9 +262,10 @@ class Enviro:
         Args:
             strict:
                 If 'True', then we raise an exception, else we simply 
-                return 'None' if the exceptions is 'FileNotFoundError'
+                return 'regular' temperature (from BME280) if the 
+                exceptions is 'FileNotFoundError'
         Raises:
-            Same expetions as 'Popen'
+            Same exceptions as 'Popen'
         """
         try:
             process = Popen(['vcgencmd', 'measure_temp'], stdout=PIPE, universal_newlines=True)
@@ -274,7 +274,7 @@ class Enviro:
         
         except FileNotFoundError:
             if not strict:
-                return None
+                return self._BME280.get_temperature()
             else:
                 raise
         
@@ -313,6 +313,7 @@ class Enviro:
         return data
 
     def display_init(self):
+        self.displSleepCntr = self.displSleep   # Reset 'sleep' counter
         self._img = Image.new(
             'RGB', 
             (self._LCD.width, self._LCD.height), 
@@ -324,10 +325,12 @@ class Enviro:
 
     def display_on(self):
         """Turn 'on' LCD display"""
+        self.displSleepCntr = self.displSleep   # Reset 'sleep' counter
         self._LCD.display_on()
 
     def display_off(self):
         """Turn 'off' LCD display"""
+        self.displSleepCntr = 0                 # Set 'sleep' and LCD to 'sleep' mode
         self._LCD.display_off()
         
     def display_blank(self):
@@ -337,8 +340,11 @@ class Enviro:
             (self._LCD.width, self._LCD.height), 
             color = RGB_BLACK
         )
-        # draw = ImageDraw.Draw(img)
-        self._LCD.display(img)
+
+        # Only display result if not in 'sleep' mode
+        if self.displSleepCntr:
+            # draw = ImageDraw.Draw(img)
+            self._LCD.display(img)
 
     def display_reset(self):
         """Reset and clear LCD"""
@@ -397,7 +403,10 @@ class Enviro:
         # Write the text at the top in black
         message = "{}: {:.1f} {}".format(data["label"][:4], data["data"][-1], data["unit"])
         self._draw.text((0, 0), message, font=self._fontLG, fill=RGB_BLACK)
-        self._LCD.display(self._img)
+
+        # Only display result if not in 'sleep' mode
+        if self.displSleepCntr:
+            self._LCD.display(self._img)
     
     def display_as_text(self, data):
         """Display graph and data point as text label
@@ -434,7 +443,9 @@ class Enviro:
 
             self._draw.text((x, y), message, font=self._fontSM, fill=rgb)
         
-        self._LCD.display(self._img)
+        # Only display result if not in 'sleep' mode
+        if self.displSleepCntr:
+            self._LCD.display(self._img)
 
     def display_progress(self, inVal, maxVal=100):
         """Update progressbar on bottom row of LCD

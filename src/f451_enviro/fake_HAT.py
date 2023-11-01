@@ -44,6 +44,10 @@ class FakeSubST7735:
         pass    
 
     @staticmethod
+    def display(*args, **kwargs):
+        pass    
+
+    @staticmethod
     def display_on():
         pass    
 

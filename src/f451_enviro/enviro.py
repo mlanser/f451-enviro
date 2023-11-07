@@ -97,7 +97,7 @@ STATUS_OFF = False
 
 DISPL_TOP_X = 2         # X/Y ccordinate of top-left corner for LCD content
 DISPL_TOP_Y = 2
-DISPL_TOP_BAR = 25      # Height (in px) of top bar
+DISPL_TOP_BAR = 21      # Height (in px) of top bar
 
 PROX_DEBOUNCE = 0.5     # Delay to debounce proximity sensor on 'tap'
 PROX_LIMIT = 1500       # Threshold for proximity sensor to detect 'tap'
@@ -372,7 +372,6 @@ class Enviro:
             (self._LCD.width, self._LCD.height), 
             color = RGB_BLACK
         )
-
         self._LCD.display(img)
 
     def display_reset(self):

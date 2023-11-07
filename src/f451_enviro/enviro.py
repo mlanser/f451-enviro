@@ -338,6 +338,7 @@ class Enviro:
         )
         self._draw = ImageDraw.Draw(self._img)
         self._fontLG = ImageFont.truetype(RobotoMedium, FONT_SIZE_LG)
+        self._fontMD = ImageFont.truetype(RobotoMedium, FONT_SIZE_MD)
         self._fontSM = ImageFont.truetype(RobotoMedium, FONT_SIZE_SM)
 
     def display_on(self):
@@ -424,7 +425,7 @@ class Enviro:
         
         # Write the text at the top in black
         message = "{}: {:.1f} {}".format(data["label"][:4], data["data"][-1], data["unit"])
-        self._draw.text((0, 0), message, font=self._fontLG, fill=RGB_BLUE)
+        self._draw.text((0, 0), message, font=self._fontMD, fill=RGB_BLUE)
 
         self._LCD.display(self._img)
 

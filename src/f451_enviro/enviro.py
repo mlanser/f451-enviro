@@ -426,7 +426,10 @@ class Enviro:
         vmin = min(data["data"])
         vmax = max(data["data"])
         colors = [(v - vmin + 1) / (vmax - vmin + 1) for v in data["data"]]
-        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_BLACK)
+
+        # Reserve space for progress bar?
+        yMin = 2 if (self.displProgress) else 0
+        self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)
         
         for i in range(len(colors)):
             # Convert the values to colors from red to blue
@@ -466,7 +469,9 @@ class Enviro:
         if self.displSleepMode:
             return
 
-        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_BLACK)
+        # Reserve space for progress bar?
+        yMin = 2 if (self.displProgress) else 0
+        self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)
 
         cols = 2
         rows = (len(data) / cols)

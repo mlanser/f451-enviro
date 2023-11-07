@@ -104,21 +104,30 @@ PROX_LIMIT = 1500       # Threshold for proximity sensor to detect 'tap'
 
 RGB_BLACK = (0, 0, 0)
 RGB_WHITE = (255, 255, 255)
+
 RGB_BLUE = (0, 0, 255)
 RGB_CYAN = (0, 255, 255)
 RGB_GREEN = (0, 255, 0)
 RGB_YELLOW = (255, 255, 0)
 RGB_RED = (255, 0, 0)
 
+RGB_CHROME = (219, 226, 233)    # Chrome
+RGB_GREY = (67, 70, 75)         # Dark Steel Grey
+RGB_GREY2 = (57, 61, 71)        # Anthracite
+
+
 RGB_PROGRESS = (127, 0, 255) # Use for progressbar at bottom of LCD
+
+COLOR_BG = RGB_GREY
+COLOR_TXT = RGB_CHROME
 
 # RGB color palette for values on combo/text screen
 COLOR_PALETTE = [
-    RGB_BLUE,       # Dangerously Low
-    RGB_CYAN,       # Low
-    RGB_GREEN,      # Normal
-    RGB_YELLOW,     # High
-    RGB_RED         # Dangerously High
+    RGB_BLUE,           # Dangerously Low
+    RGB_CYAN,           # Low
+    RGB_GREEN,          # Normal
+    RGB_YELLOW,         # High
+    RGB_RED             # Dangerously High
 ]         
 
 FONT_SIZE_SM = 10       # Small font size
@@ -417,7 +426,7 @@ class Enviro:
         vmin = min(data["data"])
         vmax = max(data["data"])
         colors = [(v - vmin + 1) / (vmax - vmin + 1) for v in data["data"]]
-        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_BLACK)
+        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), COLOR_BG)
         
         for i in range(len(colors)):
             # Convert the values to colors from red to blue
@@ -434,7 +443,7 @@ class Enviro:
         
         # Write the text at the top in black
         message = "{}: {:.1f} {}".format(data["label"][:4], data["data"][-1], data["unit"])
-        self._draw.text((0, 0), message, font=self._fontMD, fill=RGB_BLUE)
+        self._draw.text((0, 0), message, font=self._fontMD, fill=COLOR_TXT)
 
         self._LCD.display(self._img)
 
@@ -457,7 +466,7 @@ class Enviro:
         if self.displSleepMode:
             return
 
-        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_BLACK)
+        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), COLOR_BG)
 
         cols = 2
         rows = (len(data) / cols)

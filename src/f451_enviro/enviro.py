@@ -353,11 +353,13 @@ class Enviro:
         """Turn 'on' LCD display"""
         self.displSleepMode = False     # Reset 'sleep mode' flag
         self._LCD.display_on()
+        self._LCD.display_blank()
 
     def display_off(self):
         """Turn 'off' LCD display"""
-        self.displSleepMode = True      # Set 'sleep mode' flag
+        self._LCD.display_blank()
         self._LCD.display_off()
+        self.displSleepMode = True      # Set 'sleep mode' flag
         
     def display_blank(self):
         """Show clear/blank LCD"""

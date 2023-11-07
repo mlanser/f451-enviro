@@ -427,7 +427,7 @@ class Enviro:
         vmin = min(data["data"])
         vmax = max(data["data"])
         colors = [(v - vmin + 1) / (vmax - vmin + 1) for v in data["data"]]
-        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), COLOR_BG)
+        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_GREY2)
         
         for i in range(len(colors)):
             # Convert the values to colors from red to blue
@@ -467,7 +467,7 @@ class Enviro:
         if self.displSleepMode:
             return
 
-        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), COLOR_BG)
+        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_BLACK)
 
         cols = 2
         rows = (len(data) / cols)

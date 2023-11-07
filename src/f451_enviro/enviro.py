@@ -118,7 +118,7 @@ RGB_GREY2 = (57, 61, 71)        # Anthracite
 
 RGB_PROGRESS = (127, 0, 255) # Use for progressbar at bottom of LCD
 
-COLOR_BG = RGB_GREY
+COLOR_BG = RGB_GREY2
 COLOR_TXT = RGB_CHROME
 
 # RGB color palette for values on combo/text screen
@@ -317,8 +317,8 @@ class Enviro:
             data = self._PMS5003.read()
 
         except pmsReadTimeoutError:
-            time.sleep(1)
             self._PMS5003.reset()
+            time.sleep(1)
             data = self._PMS5003.read()
 
         return data

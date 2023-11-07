@@ -317,6 +317,7 @@ class Enviro:
             data = self._PMS5003.read()
 
         except pmsReadTimeoutError:
+            time.sleep(1)
             self._PMS5003.reset()
             data = self._PMS5003.read()
 

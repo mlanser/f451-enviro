@@ -219,7 +219,8 @@ class Enviro:
         self.displMode = settings.get(KWD_DISPLAY, DEF_DISPL_MODE)
         self.displProgress = bool(settings.get(KWD_PROGRESS, STATUS_ON))
 
-        self.displSleep = self.displSleepCntr = settings.get(KWD_SLEEP, DEF_SLEEP)
+        self.displSleepTime = settings.get(KWD_SLEEP, DEF_SLEEP)
+        self.displSleepMode = False
         
         self.displTopX = settings.get(KWD_DISPL_TOP_X, DISPL_TOP_X)
         self.displTopY = settings.get(KWD_DISPL_TOP_Y, DISPL_TOP_Y)
@@ -312,8 +313,24 @@ class Enviro:
 
         return data
 
+    def update_sleep_mode(self, *args):
+        """Enable or disable LCD sleep mode
+
+        We're turning on/off teh LCD sleep mode flag based on whether
+        one or more args are 'True'
+
+        Args:
+            args: list of one or more flags
+        """
+        self.displSleepMode = any(args)
+
     def display_init(self):
-        self.displSleepCntr = self.displSleep   # Reset 'sleep' counter
+        """Initialize LCD drawing area
+        
+        This only initializes the drawing area without actually 
+        drawing or displying anything on the LCD. So we can/should 
+        do this regardless of sleep mode.
+        """
         self._img = Image.new(
             'RGB', 
             (self._LCD.width, self._LCD.height), 
@@ -325,26 +342,27 @@ class Enviro:
 
     def display_on(self):
         """Turn 'on' LCD display"""
-        self.displSleepCntr = self.displSleep   # Reset 'sleep' counter
+        self.displSleepMode = False     # Reset 'sleep mode' flag
         self._LCD.display_on()
 
     def display_off(self):
         """Turn 'off' LCD display"""
-        self.displSleepCntr = 0                 # Set 'sleep' and LCD to 'sleep' mode
+        self.displSleepMode = True      # Set 'sleep mode' flag
         self._LCD.display_off()
         
     def display_blank(self):
         """Show clear/blank LCD"""
+        # Skip this if we're in 'sleep' mode
+        if self.displSleepMode:
+            return
+        
         img = Image.new(
             'RGB', 
             (self._LCD.width, self._LCD.height), 
             color = RGB_BLACK
         )
 
-        # Only display result if not in 'sleep' mode
-        if self.displSleepCntr:
-            # draw = ImageDraw.Draw(img)
-            self._LCD.display(img)
+        self._LCD.display(img)
 
     def display_reset(self):
         """Reset and clear LCD"""
@@ -381,11 +399,15 @@ class Enviro:
                         "limit": [list of limits]
                     }    
         """
+        # Skip this if we're in 'sleep' mode
+        if self.displSleepMode:
+            return
+
         # Scale values in data set between 0 and 1
         vmin = min(data["data"])
         vmax = max(data["data"])
         colors = [(v - vmin + 1) / (vmax - vmin + 1) for v in data["data"]]
-        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_WHITE)
+        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_BLACK)
         
         for i in range(len(colors)):
             # Convert the values to colors from red to blue
@@ -402,12 +424,10 @@ class Enviro:
         
         # Write the text at the top in black
         message = "{}: {:.1f} {}".format(data["label"][:4], data["data"][-1], data["unit"])
-        self._draw.text((0, 0), message, font=self._fontLG, fill=RGB_BLACK)
+        self._draw.text((0, 0), message, font=self._fontLG, fill=RGB_BLUE)
 
-        # Only display result if not in 'sleep' mode
-        if self.displSleepCntr:
-            self._LCD.display(self._img)
-    
+        self._LCD.display(self._img)
+
     def display_as_text(self, data):
         """Display graph and data point as text label
         
@@ -423,6 +443,10 @@ class Enviro:
                         "limit": [list of limits]
                     }    
         """
+        # Skip this if we're in 'sleep' mode
+        if self.displSleepMode:
+            return
+
         self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_BLACK)
 
         cols = 2
@@ -442,10 +466,8 @@ class Enviro:
                     rgb = COLOR_PALETTE[j + 1]
 
             self._draw.text((x, y), message, font=self._fontSM, fill=rgb)
-        
-        # Only display result if not in 'sleep' mode
-        if self.displSleepCntr:
-            self._LCD.display(self._img)
+
+        self._LCD.display(self._img)
 
     def display_progress(self, inVal, maxVal=100):
         """Update progressbar on bottom row of LCD

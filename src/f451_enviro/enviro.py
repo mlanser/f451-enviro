@@ -493,22 +493,22 @@ class Enviro:
 
         self._LCD.display(self._img)
 
-    def display_progress(self, inPcnt=0.0):
+    def display_progress(self, inFrctn=0.0):
         """Update progressbar on LCD
 
-        This method marks 'percent complete' (0.0 - 100.0%) 
+        This method marks 'fraction complete' (0.0 - 1.0) 
         on 1px tall progress bar on top row of LCD
 
         Args:
-            inPcnt: 'float' representing percent complete
+            inFrctn: 'float' representing fraction complete
         """
         # Skip this if we're in 'sleep' mode
         if self.displSleepMode or not self.displProgress:
             return
 
         # Calculate X value. We ensure that we do not go over max width
-        # of LCD by limiting any input value to a range of 0.0 - 100.0
-        x = int(max(min(float(inPcnt), 100.0), 0.0) / 100 * self._LCD.width)
+        # of LCD by limiting any input value to a range of 0.0 - 1.0
+        x = int(max(min(float(inFrctn), 1.0), 0.0) * self._LCD.width)
 
         self._draw.rectangle((0, 0, self._LCD.width, 0), RGB_BLACK)
         self._draw.rectangle((0, 0, x, 0), RGB_CYAN)

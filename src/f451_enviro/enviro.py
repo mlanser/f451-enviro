@@ -322,7 +322,15 @@ class Enviro:
         Args:
             args: list of one or more flags
         """
-        self.displSleepMode = any(args)
+        sleep = any(args)
+
+        # Do we need to turn off LCD?
+        if sleep and not self.displSleepMode:
+            self.display_off()
+
+        # Do we need to turn on LCD?
+        elif not sleep and self.displSleepMode:
+            self.display_on()
 
     def display_init(self):
         """Initialize LCD drawing area

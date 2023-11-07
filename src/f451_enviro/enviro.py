@@ -118,7 +118,6 @@ RGB_GREY2 = (57, 61, 71)        # Anthracite
 
 RGB_PROGRESS = (127, 0, 255) # Use for progressbar at bottom of LCD
 
-COLOR_BG = RGB_GREY2
 COLOR_TXT = RGB_CHROME
 
 # RGB color palette for values on combo/text screen
@@ -427,7 +426,7 @@ class Enviro:
         vmin = min(data["data"])
         vmax = max(data["data"])
         colors = [(v - vmin + 1) / (vmax - vmin + 1) for v in data["data"]]
-        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_GREY2)
+        self._draw.rectangle((0, 0, self._LCD.width, self._LCD.height), RGB_BLACK)
         
         for i in range(len(colors)):
             # Convert the values to colors from red to blue

@@ -72,6 +72,7 @@ except ImportError:
 
 __all__ = [
     "Enviro",
+    "EnviroError",
     "KWD_ROTATION",
     "KWD_DISPLAY",
     "KWD_PROGRESS",
@@ -145,6 +146,14 @@ KWD_SLEEP = "SLEEP"
 KWD_DISPL_TOP_X = "TOP_X"
 KWD_DISPL_TOP_Y = "TOP_Y"
 KWD_DISPL_TOP_BAR = "TOP_BAR"
+
+
+# =========================================================
+#                        H E L P E R S
+# =========================================================
+class EnviroError(Exception):
+    """Custom exception class"""
+    pass
 
 
 # =========================================================
@@ -315,9 +324,12 @@ class Enviro:
             data = self._PMS5003.read()
 
         except pmsReadTimeoutError:
-            self._PMS5003.reset()
             time.sleep(1)
+            self._PMS5003.reset()
             data = self._PMS5003.read()
+
+        except SerialTimeoutError as e:
+            raise EnviroError(f"PMS5003 Error: {e}")
 
         return data
 

@@ -16,7 +16,6 @@ Dependencies:
 
 import time
 import colorsys
-import sys
 
 from random import randint
 
@@ -111,16 +110,12 @@ RGB_GREEN = (0, 255, 0)
 RGB_YELLOW = (255, 255, 0)
 RGB_RED = (255, 0, 0)
 
-RGB_CHROME = (219, 226, 233)    # Chrome
+RGB_CHROME = (219, 226, 233)    # Chrome (lt grey)
 RGB_GREY = (67, 70, 75)         # Dark Steel Grey
 RGB_GREY2 = (57, 61, 71)        # Anthracite
+RGB_PURPLE = (127, 0, 255)
 
-
-RGB_PROGRESS = (127, 0, 255) # Use for progressbar at bottom of LCD
-
-COLOR_TXT = RGB_CHROME
-
-# RGB color palette for values on combo/text screen
+# RGB colors and palette for values on combo/text screen
 COLOR_PALETTE = [
     RGB_BLUE,           # Dangerously Low
     RGB_CYAN,           # Low
@@ -128,6 +123,10 @@ COLOR_PALETTE = [
     RGB_YELLOW,         # High
     RGB_RED             # Dangerously High
 ]         
+
+COLOR_BG = RGB_BLACK    # Default background
+COLOR_TXT = RGB_CHROME  # Default text on background
+COLOR_PBAR = RGB_CYAN   # Default progress bar 
 
 FONT_SIZE_SM = 10       # Small font size
 FONT_SIZE_MD = 16       # Medium font size
@@ -387,22 +386,6 @@ class Enviro:
         """Reset and clear LCD"""
         self.display_init()
 
-    def display_sparkle(self):
-        """Show random sparkles on LCD"""
-        pass
-        # x = randint(0, 7)
-        # y = randint(0, 7)
-        # r = randint(0, 255)
-        # g = randint(0, 255)
-        # b = randint(0, 255)
-
-        # toggle = randint(0, 3)
-
-        # if toggle != 0:
-        #     self.enviro.set_pixel(x, y, r, g, b)
-        # else:    
-        #     self.enviro.clear()
-
     def display_as_graph(self, data):
         """Display graph and data point as text label
         
@@ -510,7 +493,23 @@ class Enviro:
         # of LCD by limiting any input value to a range of 0.0 - 1.0
         x = int(max(min(float(inFrctn), 1.0), 0.0) * self._LCD.width)
 
-        self._draw.rectangle((0, 0, self._LCD.width, 0), RGB_BLACK)
-        self._draw.rectangle((0, 0, x, 0), RGB_CYAN)
+        self._draw.rectangle((0, 0, self._LCD.width, 0), COLOR_BG)
+        self._draw.rectangle((0, 0, x, 0), COLOR_PBAR)
 
         self._LCD.display(self._img)
+
+    def display_sparkle(self):
+        """Show random sparkles on LCD"""
+        pass
+        # x = randint(0, 7)
+        # y = randint(0, 7)
+        # r = randint(0, 255)
+        # g = randint(0, 255)
+        # b = randint(0, 255)
+
+        # toggle = randint(0, 3)
+
+        # if toggle != 0:
+        #     self.enviro.set_pixel(x, y, r, g, b)
+        # else:    
+        #     self.enviro.clear()

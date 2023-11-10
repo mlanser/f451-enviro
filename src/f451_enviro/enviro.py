@@ -102,6 +102,8 @@ DISPL_TOP_BAR = 21      # Height (in px) of top bar
 PROX_DEBOUNCE = 0.5     # Delay to debounce proximity sensor on 'tap'
 PROX_LIMIT = 1500       # Threshold for proximity sensor to detect 'tap'
 
+MAX_SPARKLE_PCNT = 0.1  # 10% sparkles
+
 RGB_BLACK = (0, 0, 0)
 RGB_WHITE = (255, 255, 255)
 
@@ -553,8 +555,9 @@ class Enviro:
         b = randint(0, 255)
 
         # Do we want to clear the screen? Or add more sparkles?
-        if randint(0, 100):
+        maxSparkle = int(self._LCD.width * self._LCD.height * MAX_SPARKLE_PCNT)
+        if randint(0, maxSparkle):
             self._draw.point((x, y), (r, g, b))
             self._LCD.display(self._img)
         else:    
-            self._draw.rectangle((0, yMin, self._LCD.width - 1, self._LCD.height - 1), RGB_BLACK)
+            self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)

@@ -1,5 +1,6 @@
 """Demo for using f451 Labs Enviro+ Module."""
 
+import time
 from f451_enviro.enviro import Enviro
 
 
@@ -29,6 +30,13 @@ def main():
     print(f"PRESSURE: {pressRaw} hPa")
     print(f"HUMIDITY: {humidRaw} %")
     print("=============== [End of Demo] =================\n")
+
+    for _ in range(100):
+        enviro.display_sparkle()
+        time.sleep(0.2)
+
+    enviro.display_blank()
+    enviro.display_off()
 
 
 if __name__ == "__main__":

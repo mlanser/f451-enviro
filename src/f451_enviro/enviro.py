@@ -486,6 +486,7 @@ class Enviro:
 
             self._draw.text((x, y), message, font=self._fontSM, fill=rgb)
 
+        # Display results
         self._LCD.display(self._img)
 
     def display_message(self, msg):
@@ -504,10 +505,12 @@ class Enviro:
         yMin = 2 if (self.displProgress) else 0
         self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)
 
+        # Draw message
         x = DEF_LCD_OFFSET_X
         y = DEF_LCD_OFFSET_Y + int((self._LCD.height - FONT_SIZE_LG) / 2)
         self._draw.text((x, y), str(msg), font=self._fontLG, fill=COLOR_TXT)
 
+        # Display results
         self._LCD.display(self._img)
 
     def display_progress(self, inFrctn=0.0):
@@ -530,20 +533,30 @@ class Enviro:
         self._draw.rectangle((0, 0, self._LCD.width, 0), COLOR_BG)
         self._draw.rectangle((0, 0, x, 0), COLOR_PBAR)
 
+        # Display results
         self._LCD.display(self._img)
 
     def display_sparkle(self):
         """Show random sparkles on LCD"""
-        pass
-        # x = randint(0, 7)
-        # y = randint(0, 7)
-        # r = randint(0, 255)
-        # g = randint(0, 255)
-        # b = randint(0, 255)
+        # Skip this if we're in 'sleep' mode
+        if self.displSleepMode:
+            return
 
-        # toggle = randint(0, 3)
+        yMin = 2 if (self.displProgress) else 0
 
-        # if toggle != 0:
-        #     self.enviro.set_pixel(x, y, r, g, b)
-        # else:    
-        #     self.enviro.clear()
+        # Reserve space for progress bar?
+        self._draw.rectangle((0, yMin, self._LCD.width - 1, self._LCD.height - 1), RGB_BLACK)
+        
+        # Create sparkles
+        x = randint(0, self._LCD.width - 1)
+        y = randint(yMin, self._LCD.height - 1)
+        r = randint(0, 255)
+        g = randint(0, 255)
+        b = randint(0, 255)
+
+        # Do we want to clear the screen? Or add more sparkles?
+        if randint(0, 5):
+            self._draw.point((x, y), (r, g, b))
+            self._LCD.display(self._img)
+        else:    
+            self.display_blank()

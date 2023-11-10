@@ -1,4 +1,4 @@
-# f451 Labs Enviro+ module
+# f451 Labs Enviro+ module v0.0.1
 
 ## Overview
 
@@ -6,7 +6,7 @@ The *f451 Labs Enviro+* module encapsulates the drivers for the [*Pimoroni Envir
 
 ## Install
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Convallis a cras semper auctor neque vitae.
+This module is not (yet) available on PyPi. however, you can still use `pip` to install the module directly from Github (see below).
 
 ### Dependencies
 
@@ -32,12 +32,23 @@ $ pip install 'f451-enviro @ git+ssh://git@github.com:mlanser/f451-enviro.git'
 
 ## How to use
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Convallis a cras semper auctor neque vitae.
+Using the module is straightforward. Simply `import` it into your code and instantiate an `Enviro` object which you can then use throughout your code.
 
 ```Python
-# ??? ...
-enviro = Enviro()
+# Import f451 Labs Enviro+
+from f451_enviro.enviro import Enviro
 
-# ... ???
-enviro = Enviro(....)
+# Initialize device instance which includes all sensors
+# and LCD display on Enviro+
+myEnviro = Enviro({
+    "ROTATION": 90,
+    "DISPLAY": 0,
+    "PROGRESS": 0,
+    "SLEEP": 600    
+})
+myEnviro.display_init()
+
+print(f"TEMP:     {round(myEnviro.get_temperature(), 1)} C")
+print(f"PRESSURE: {round(myEnviro.get_pressure(), 1)} hPa")
+print(f"HUMIDITY: {round(myEnviro.get_humidity(), 1)} %")
 ```

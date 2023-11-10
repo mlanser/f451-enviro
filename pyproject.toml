@@ -15,13 +15,24 @@ classifiers = [
 ]
 keywords = ["enviro", "f451"]
 dependencies = [
-    'tomli; python_version < "3.11"'
+    'tomli; python_version < "3.11"',
+    "enviroplus",
+    "fonts",
+    "font-roboto",
+    "Pillow",
 ]
 requires-python = ">=3.9"
 dynamic = ["version"]
 
 [project.optional-dependencies]
-dev = ["black", "bumpver", "isort", "pip-tools", "pytest"]
+dev = [
+    "black", 
+    "bumpver", 
+    "isort", 
+    "pip-tools", 
+    "pytest",
+    "pytest-random"
+]
 
 [project.urls]
 Homepage = "https://github.com/mlanser/f451-enviro"
@@ -42,12 +53,6 @@ tag = true
 push = false
 
 [tool.bumpver.file_patterns]
-"pyproject.toml" = [
-    'current_version = "{version}"',
-    'version = "{version}"'
-]
-"src/f451-enviro/__init__.py" = ["{version}"]
-"README.md" = [
-    "{version}",
-    "{pep440_version}",
-]
+"pyproject.toml" = ['current_version = "{version}"']
+"src/f451_enviro/__init__.py" = ['__version__ = "{version}"']
+"README.md" = ['v{version}$']

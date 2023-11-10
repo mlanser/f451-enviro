@@ -15,11 +15,6 @@ except ModuleNotFoundError:
 
 
 # =========================================================
-#          G L O B A L S   A N D   H E L P E R S
-# =========================================================
-
-
-# =========================================================
 #                    D E M O   A P P
 # =========================================================
 def main():
@@ -30,23 +25,25 @@ def main():
     try:
         with open(appDir.joinpath("settings.toml"), mode="rb") as fp:
             config = tomllib.load(fp)
-    except tomllib.TOMLDecodeError:
-        sys.exit("Invalid 'settings.toml' file")      
+    except (FileNotFoundError, tomllib.TOMLDecodeError):
+        sys.exit("ERROR: Missing or invalid 'settings.toml' file")      
 
     # Initialize device instance which includes all sensors
     # an d LCD display on Enviro+
     enviro = Enviro(config)
     enviro.display_init()
 
-    tempRaw = enviro.get_temperature()
-    pressRaw = enviro.get_pressure()
-    humidRaw = enviro.get_humidity()
+    # Display text on LCD
+    enviro.display_message("Hello world!")
+
+    tempRaw = round(enviro.get_temperature(), 1)
+    pressRaw = round(enviro.get_pressure(), 1)
+    humidRaw = round(enviro.get_humidity(), 1)
 
     print("\n===== [Demo of f451 Labs Enviro+ Module] ======")
     print(f"TEMP:     {tempRaw} C")
     print(f"PRESSURE: {pressRaw} hPa")
     print(f"HUMIDITY: {humidRaw} %")
-    # print("Beep boop!")
     print("=============== [End of Demo] =================\n")
 
 

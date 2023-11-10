@@ -219,7 +219,7 @@ class Enviro:
         # We combine 'args' and 'kwargs' to allow users to provide the entire 
         # 'config' object and/or individual settings (which could override 
         # values in 'config').
-        settings = {**args[0], **kwargs} if args and type(args[0]) is dict else kwargs
+        settings = {**args[0], **kwargs} if args and isinstance(args[0], dict) else kwargs
 
         bus = SMBus(1)
         self._BME280 = BME280(i2c_dev=bus)                  # BME280 temperature, pressure, humidity sensor
@@ -446,7 +446,7 @@ class Enviro:
         self._LCD.display(self._img)
 
     def display_as_text(self, data):
-        """Display graph and data point as text label
+        """Display data points as text in columns
         
         This method will redraw the entire LCD
 
@@ -485,6 +485,28 @@ class Enviro:
                     rgb = COLOR_PALETTE[j + 1]
 
             self._draw.text((x, y), message, font=self._fontSM, fill=rgb)
+
+        self._LCD.display(self._img)
+
+    def display_message(self, msg):
+        """Display text message
+        
+        This method will redraw the entire LCD
+
+        Args:
+            msg: 'str' with text to display
+        """
+        # Skip this if we're in 'sleep' mode
+        if self.displSleepMode:
+            return
+
+        # Reserve space for progress bar?
+        yMin = 2 if (self.displProgress) else 0
+        self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)
+
+        x = DEF_LCD_OFFSET_X
+        y = DEF_LCD_OFFSET_Y + int((self._LCD.height - FONT_SIZE_MD) / 2)
+        self._draw.text((x, y), str(msg), font=self._fontSM, fill=COLOR_TXT)
 
         self._LCD.display(self._img)
 

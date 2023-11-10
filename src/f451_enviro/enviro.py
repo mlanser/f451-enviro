@@ -542,11 +542,9 @@ class Enviro:
         if self.displSleepMode:
             return
 
+        # Reserve space for progress bar?
         yMin = 2 if (self.displProgress) else 0
 
-        # Reserve space for progress bar?
-        self._draw.rectangle((0, yMin, self._LCD.width - 1, self._LCD.height - 1), RGB_BLACK)
-        
         # Create sparkles
         x = randint(0, self._LCD.width - 1)
         y = randint(yMin, self._LCD.height - 1)
@@ -559,4 +557,4 @@ class Enviro:
             self._draw.point((x, y), (r, g, b))
             self._LCD.display(self._img)
         else:    
-            self.display_blank()
+            self._draw.rectangle((0, yMin, self._LCD.width - 1, self._LCD.height - 1), RGB_BLACK)

@@ -555,7 +555,7 @@ class Enviro:
         b = randint(0, 255)
 
         # Do we want to clear the screen? Or add more sparkles?
-        if randint(0, 5):
+        if randint(0, 10) != 0:
             self._draw.point((x, y), (r, g, b))
             self._LCD.display(self._img)
         else:    

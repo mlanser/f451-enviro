@@ -505,8 +505,8 @@ class Enviro:
         self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)
 
         x = DEF_LCD_OFFSET_X
-        y = DEF_LCD_OFFSET_Y + int((self._LCD.height - FONT_SIZE_MD) / 2)
-        self._draw.text((x, y), str(msg), font=self._fontSM, fill=COLOR_TXT)
+        y = DEF_LCD_OFFSET_Y + int((self._LCD.height - FONT_SIZE_LG) / 2)
+        self._draw.text((x, y), str(msg), font=self._fontLG, fill=COLOR_TXT)
 
         self._LCD.display(self._img)
 

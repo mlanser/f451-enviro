@@ -1,36 +1,20 @@
 """Demo for using f451 Labs Enviro+ Module."""
 
-import time
-import sys
-import asyncio
-from pathlib import Path
-from random import randint
-
 from f451_enviro.enviro import Enviro
-
-try:
-    import tomllib
-except ModuleNotFoundError:
-    import tomli as tomllib
 
 
 # =========================================================
 #                    D E M O   A P P
 # =========================================================
 def main():
-    # Get app dir
-    appDir = Path(__file__).parent
-
-    # Initialize TOML parser and load 'settings.toml' file
-    try:
-        with open(appDir.joinpath("settings.toml"), mode="rb") as fp:
-            config = tomllib.load(fp)
-    except (FileNotFoundError, tomllib.TOMLDecodeError):
-        sys.exit("ERROR: Missing or invalid 'settings.toml' file")      
-
     # Initialize device instance which includes all sensors
     # an d LCD display on Enviro+
-    enviro = Enviro(config)
+    enviro = Enviro({
+        "ROTATION": 90,
+        "DISPLAY": 0,
+        "PROGRESS": 0,
+        "SLEEP": 600    
+    })
     enviro.display_init()
 
     # Display text on LCD

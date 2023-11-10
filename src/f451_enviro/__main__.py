@@ -25,18 +25,18 @@ def main():
     pressRaw = round(enviro.get_pressure(), 1)
     humidRaw = round(enviro.get_humidity(), 1)
 
-    print("\n===== [Demo of f451 Labs Enviro+ Module] ======")
-    print(f"TEMP:     {tempRaw} C")
-    print(f"PRESSURE: {pressRaw} hPa")
-    print(f"HUMIDITY: {humidRaw} %")
-    print("=============== [End of Demo] =================\n")
-
     for _ in range(100):
         enviro.display_sparkle()
         time.sleep(0.2)
 
     enviro.display_blank()
     enviro.display_off()
+
+    print("\n===== [Demo of f451 Labs Enviro+ Module] ======")
+    print(f"TEMP:     {tempRaw} C")
+    print(f"PRESSURE: {pressRaw} hPa")
+    print(f"HUMIDITY: {humidRaw} %")
+    print("=============== [End of Demo] =================\n")
 
 
 if __name__ == "__main__":

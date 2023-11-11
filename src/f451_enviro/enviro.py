@@ -7,6 +7,11 @@ The class wraps -- and extends as needed -- the methods
 and functions supported by underlying libraries, and also
 keeps track of core counters, flags, etc.
 
+TODO: there are a few things that will be adeded as needed including:
+ - method to display shapes
+ - method to display scrolling text
+ - method to display images
+
 Dependencies:
  - fonts: https://pypi.org/project/fonts/
  - font-roboto: https://pypi.org/project/font-roboto/
@@ -135,7 +140,7 @@ FONT_SIZE_SM = 10       # Small font size
 FONT_SIZE_MD = 16       # Medium font size
 FONT_SIZE_LG = 20       # Large font size
 
-ROTATE_90 = 90          # Rotate 90 degrees    
+ROTATE_90 = 90          # Rotate 90 degrees
 
 
 # =========================================================

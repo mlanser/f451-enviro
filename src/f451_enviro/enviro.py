@@ -207,6 +207,7 @@ class Enviro:
         display_sparkle:    Show random sparkles on LCD
         display_as_graph:   Display data as (sparkline) graph
         display_as_text:    Display data as text (in columns)
+        display_message:    
         display_progress:   Display progress bar
     """
     def __init__(self, *args, **kwargs):

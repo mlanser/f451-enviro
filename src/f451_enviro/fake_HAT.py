@@ -7,7 +7,6 @@ random values within the limits of the actual hardware.
 """
 
 import random
-from typing import Any
 
 
 # =========================================================
@@ -38,6 +37,7 @@ class FakeSubST7735:
     def __init__(self):
         self.width = ST7735_WIDTH
         self.height = ST7735_HEIGHT
+        self.fake = True
 
     @staticmethod
     def begin():

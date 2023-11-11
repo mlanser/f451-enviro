@@ -9,8 +9,6 @@ using the mock unit.
 """
 
 import pytest
-import sys
-import logging
 from pathlib import Path
 
 from src.f451_enviro.enviro import Enviro

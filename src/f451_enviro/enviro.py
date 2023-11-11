@@ -257,7 +257,7 @@ class Enviro:
     @property
     def heightLCD(self):
         return self._LCD.height
-
+    
     def _init_LCD(self, **kwargs):
         """Initialize LCD on Enviro+"""
         st7735 = ST7735.ST7735(
@@ -271,6 +271,9 @@ class Enviro:
         st7735.begin()
 
         return st7735
+
+    def is_fake(self):
+        return getattr(self._LCD, 'fake', False)
 
     def get_CPU_temp(self, strict=True):
         """Get CPU temp

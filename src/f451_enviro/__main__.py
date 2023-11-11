@@ -9,28 +9,35 @@ from f451_enviro.enviro import Enviro
 # =========================================================
 def main():
     # Initialize device instance which includes all sensors
-    # an d LCD display on Enviro+
+    # and LCD display on Enviro+
     enviro = Enviro({
         "ROTATION": 90,
         "DISPLAY": 0,
         "PROGRESS": 0,
         "SLEEP": 600    
     })
-    enviro.display_init()
 
-    # Display text on LCD
-    enviro.display_message("Hello world!")
+    # Skip display demos if we're using fake HAT
+    if not enviro.is_fake():
+        enviro.display_init()
 
+        # Display text on LCD
+        enviro.display_message("Hello world!")
+
+        for _ in range(100):
+            enviro.display_sparkle()
+            time.sleep(0.2)
+
+        enviro.display_blank()
+        enviro.display_off()
+
+    else:
+        print("\nSkipping LCD demo since we don't have a real Enviro+ HAT")
+
+    # Get enviro data, even if it's fake
     tempRaw = round(enviro.get_temperature(), 1)
     pressRaw = round(enviro.get_pressure(), 1)
     humidRaw = round(enviro.get_humidity(), 1)
-
-    for _ in range(100):
-        enviro.display_sparkle()
-        time.sleep(0.2)
-
-    enviro.display_blank()
-    enviro.display_off()
 
     print("\n===== [Demo of f451 Labs Enviro+ Module] ======")
     print(f"TEMP:     {tempRaw} C")

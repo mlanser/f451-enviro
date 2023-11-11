@@ -14,6 +14,10 @@ This module is dependent on the following libraries:
 
 - [enviroplus-python](https://github.com/pimoroni/enviroplus-python/)
 
+NOTE: Only install `enviroplus-python` library on a device that also has the physical Enviro+ HAT installed.
+
+NOTE: You can run this app in demo mode in (almost) any device even without the Enviro+ HAT. It will then create random numbers and can send output to the `logger` when log level is `DEBUG` or when `--debug` flag is used.
+
 ### Installing from Github using `pip`
 
 You can use `pip install` to install this module directly from Github as follows:

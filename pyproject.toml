@@ -16,7 +16,6 @@ classifiers = [
 keywords = ["enviro", "f451"]
 dependencies = [
     'tomli; python_version < "3.11"',
-    "enviroplus",
     "fonts",
     "font-roboto",
     "Pillow",
@@ -38,7 +37,7 @@ dev = [
 Homepage = "https://github.com/mlanser/f451-enviro"
 
 [project.scripts]
-realpython = "enviro.__main__:main"
+f451_enviro = "enviro.__main__:main"
 
 [tool.bumpver]
 current_version = "0.1.0"

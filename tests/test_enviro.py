@@ -9,14 +9,7 @@ using the mock unit.
 """
 
 import pytest
-from pathlib import Path
-
 from src.f451_enviro.enviro import Enviro
-
-try:
-    import tomllib
-except ModuleNotFoundError:
-    import tomli as tomllib
 
 
 # =========================================================
@@ -52,16 +45,12 @@ def valid_str():
 
 @pytest.fixture(scope="session")
 def config():
-    settings = "src/f451_enviro/settings.toml"
-    try:
-        with open(Path(__file__).parent.parent.joinpath(settings), mode="rb") as fp:
-            config = tomllib.load(fp)
-    except tomllib.TOMLDecodeError:
-        pytest.fail("Invalid 'settings.toml' file")      
-    except FileNotFoundError:
-        pytest.fail("Missing 'settings.toml' file")      
-
-    return config
+    return {
+        "ROTATION": 90,
+        "DISPLAY": 0,
+        "PROGRESS": 0,
+        "SLEEP": 600    
+    }
 
 
 @pytest.fixture(scope="session")
@@ -72,7 +61,7 @@ def device_default():
 
 @pytest.fixture(scope="session")
 def device_config(config):
-    device = Enviro()
+    device = Enviro(config)
     return device
 
 

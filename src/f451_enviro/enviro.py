@@ -567,6 +567,7 @@ class Enviro:
         maxSparkle = int(self._LCD.width * self._LCD.height * MAX_SPARKLE_PCNT)
         if randint(0, maxSparkle):
             self._draw.point((x, y), (r, g, b))
-            self._LCD.display(self._img)
         else:    
             self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)
+            
+        self._LCD.display(self._img)

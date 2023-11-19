@@ -36,7 +36,9 @@ $ pip install 'f451-enviro @ git+ssh://git@github.com:mlanser/f451-enviro.git'
 
 ## How to use
 
-Using the module is straightforward. Simply `import` it into your code and instantiate an `Enviro` object which you can then use throughout your code.
+### SenseHat Device
+
+The `Enviro` object makes it easy to interact with the *Enviro+* device. The methods of this object help read sensor data, display data to the 0.96" LCD, etc., and using the module is straightforward. Simply `import` it into your code and instantiate an `Enviro` object which you can then use throughout your code.
 
 ```Python
 # Import f451 Labs Enviro+
@@ -55,4 +57,40 @@ myEnviro.display_init()
 print(f"TEMP:     {round(myEnviro.get_temperature(), 1)} C")
 print(f"PRESSURE: {round(myEnviro.get_pressure(), 1)} hPa")
 print(f"HUMIDITY: {round(myEnviro.get_humidity(), 1)} %")
+```
+
+### Enviro+ Data
+
+The *f451 Labs Enviro+* module also includes an `EnviroData` object and a few other helper objects. These objects are designed to simplify storing and managing sensor data. The `EnviroData` object implements so-called [double-ended queues ('deque')](https://docs.python.org/3/library/collections.html#deque-objects) which makes it easy to add and retrieve data. To use these objects in your code, simply `import` them into your code and instantiate an `EnviroData` object.
+
+```Python
+# Import f451 Labs SenseHat Data
+from f451_enviro.enviro import EnviroData
+
+maxLen = 10     # Max length of queue
+defVal = 1      # Default value for initialization
+
+myData = EnviroData(defVal, maxlen)
+
+# Assuming we have instantiated the Enviro object as 'myEnviro' we
+# can then read and store sensor data right into the data queues
+myData.temperature.data.append(myEnviro.get_temperature())
+myData.pressure.data.append(myEnviro.get_pressure())
+myData.humidity.data.append(myEnviro.get_humidity())
+```
+
+## How to test
+
+The tests are written for [pytest](https://docs.pytest.org/en/7.1.x/contents.html) and we use markers to separate out tests that require the actual Sense HAT hardware. Some tests do not rely on the hardware to be prexent. However, those tests rely on the `pytest-mock` module to be present.
+
+```bash
+
+# Run all tests (except marked 'skip')
+$ pytest
+
+# Run tests with 'hardware' marker
+$ pytest -m "hardware"
+
+# Run tests without 'hardware' marker
+$ pytest -m "not hardware"
 ```

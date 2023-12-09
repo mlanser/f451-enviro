@@ -36,7 +36,7 @@ $ pip install 'f451-enviro @ git+ssh://git@github.com:mlanser/f451-enviro.git'
 
 ## How to use
 
-### SenseHat Device
+### Enviro+ Device
 
 The `Enviro` object makes it easy to interact with the *Enviro+* device. The methods of this object help read sensor data, display data to the 0.96" LCD, etc., and using the module is straightforward. Simply `import` it into your code and instantiate an `Enviro` object which you can then use throughout your code.
 

@@ -5,7 +5,7 @@ data structures and associated methods.
 """
 
 import pytest
-from src.f451_enviro.enviro_data import EnviroData, TEMP_UNIT_C, TEMP_UNIT_F, TEMP_UNIT_K
+from src.f451_enviro.enviro_data import EnviroData, TEMP_UNIT_F, TEMP_UNIT_K
 
 
 # =========================================================
@@ -20,7 +20,7 @@ MAX_LEN = 100
 # =========================================================
 @pytest.fixture
 def valid_str():
-    return "Hello world"
+    return 'Hello world'
 
 
 @pytest.fixture
@@ -33,10 +33,10 @@ def valid_struct():
 # =========================================================
 def test_dummy(valid_str):
     """Dummy test case.
-    
+
     This is only a placeholder test case.
     """
-    assert valid_str == "Hello world"
+    assert valid_str == 'Hello world'
 
 
 def test_append_data(valid_struct):
@@ -46,7 +46,7 @@ def test_append_data(valid_struct):
     testData.pressure.data.append(200)
     testData.humidity.data.append(300)
 
-    # These deque's have fixed lengths 
+    # These deque's have fixed lengths
     assert len(testData.temperature.data) == MAX_LEN
     assert len(testData.pressure.data) == MAX_LEN
     assert len(testData.humidity.data) == MAX_LEN
@@ -62,7 +62,7 @@ def test_append_data(valid_struct):
     assert testData.humidity.data[0] == DEF_VAL
 
 
-def test_append_data(valid_struct):
+def test_convert_data(valid_struct):
     testData = valid_struct
 
     testData.temperature.data.append(100)
@@ -71,6 +71,6 @@ def test_append_data(valid_struct):
     tempF = testData.temperature.as_dict(TEMP_UNIT_F)
     tempK = testData.temperature.as_dict(TEMP_UNIT_K)
 
-    assert tempC["data"][-1] == 100
-    assert float(tempF["data"][-1]) == 212.0
-    assert float(tempK["data"][-1]) == 373.15
+    assert tempC['data'][-1] == 100
+    assert float(tempF['data'][-1]) == 212.0
+    assert float(tempK['data'][-1]) == 373.15

@@ -10,12 +10,7 @@ from f451_enviro.enviro import Enviro
 def main():
     # Initialize device instance which includes all sensors
     # and LCD display on Enviro+
-    enviro = Enviro({
-        "ROTATION": 90,
-        "DISPLAY": 0,
-        "PROGRESS": 0,
-        "SLEEP": 600    
-    })
+    enviro = Enviro({'ROTATION': 90, 'DISPLAY': 0, 'PROGRESS': 0, 'SLEEP': 600})
 
     # Skip display demos if we're using fake HAT
     if not enviro.is_fake():
@@ -46,5 +41,5 @@ def main():
     print("=============== [End of Demo] =================\n")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -11,21 +11,22 @@ Dependencies:
 from collections import deque
 
 __all__ = [
-    "EnviroData",
-    "EnviroObject",
-    "TemperatureObject",
-    "TEMP_UNIT_C",
-    "TEMP_UNIT_F",
-    "TEMP_UNIT_K",
+    'EnviroData',
+    'EnviroObject',
+    'TemperatureObject',
+    'TEMP_UNIT_C',
+    'TEMP_UNIT_F',
+    'TEMP_UNIT_K',
 ]
 
 
 # =========================================================
 #              M I S C .   C O N S T A N T S
 # =========================================================
-TEMP_UNIT_C = "C"   # Celsius
-TEMP_UNIT_F = "F"   # Fahrenheit
-TEMP_UNIT_K = "K"   # Kelvin
+TEMP_UNIT_C = 'C'  # Celsius
+TEMP_UNIT_F = 'F'  # Fahrenheit
+TEMP_UNIT_K = 'K'  # Kelvin
+
 
 # =========================================================
 #                     M A I N   C L A S S
@@ -42,6 +43,7 @@ class EnviroObject:
     Methods:
         as_dict: return data attributes as 'dict'
     """
+
     def __init__(self, data, unit, limits, label):
         self.data = data
         self.unit = unit
@@ -51,10 +53,10 @@ class EnviroObject:
     def as_dict(self):
         """Return data object as 'dict' with each attribute as key."""
         return {
-            "data": self.data,
-            "unit": self.unit,
-            "limits": self.limits,
-            "label": self.label.capitalize()
+            'data': self.data,
+            'unit': self.unit,
+            'limits': self.limits,
+            'label': self.label.capitalize(),
         }
 
 
@@ -70,12 +72,13 @@ class TemperatureObject(EnviroObject):
     Methods:
         as_dict: return data attributes as 'dict'
     """
+
     def __init__(self, data, unit, limits, label):
         super().__init__(data, unit, limits, label)
 
     def as_dict(self, unit=TEMP_UNIT_C):
         """Return object as 'dict' with temp in C, F, or K
-        
+
         Args:
             unit: if "C" then return temperature in Celsius
                   if "F"            -"-          in Fahrenheit
@@ -89,10 +92,10 @@ class TemperatureObject(EnviroObject):
             data = self.data
 
         return {
-            "data": data,
-            "unit": self.unit,
-            "limits": self.limits,
-            "label": self.label.capitalize()
+            'data': data,
+            'unit': self.unit,
+            'limits': self.limits,
+            'label': self.label.capitalize(),
         }
 
     @staticmethod
@@ -108,8 +111,8 @@ class TemperatureObject(EnviroObject):
 
 class EnviroData:
     """Data structure for holding and managing sensor data.
-    
-    Create an empty full-size data structure that we use 
+
+    Create an empty full-size data structure that we use
     in the app to collect a series of sensor data.
 
     NOTE: The 'limits' attribute stores a list of limits. You
@@ -135,7 +138,7 @@ class EnviroData:
         humidity:       humidity in %
         light:          illumination in Lux
         oxidised:       gas value k0
-        reduced:        gas value k0     
+        reduced:        gas value k0
         nh3:            gas value k0
         pm1:            particle value in ug/m3
         pm25:           particle value in ug/m3
@@ -143,9 +146,10 @@ class EnviroData:
 
     Methods:
         as_list: returns a 'list' with data from each attribute as 'dict'
-        convert_C2F: static (wrapper) method. Converts Celsius to Fahrenheit 
-        convert_C2K: static (wrapper) method. Converts Celsius to Kelvin 
+        convert_C2F: static (wrapper) method. Converts Celsius to Fahrenheit
+        convert_C2K: static (wrapper) method. Converts Celsius to Kelvin
     """
+
     def __init__(self, defVal, maxLen):
         """Initialize data structurte.
 
@@ -157,64 +161,34 @@ class EnviroData:
             'dict' - holds entiure data structure
         """
         self.temperature = TemperatureObject(
-            deque([defVal] * maxLen, maxlen=maxLen),
-            "C",
-            [4, 18, 25, 35],
-            "Temperature"
+            deque([defVal] * maxLen, maxlen=maxLen), 'C', [4, 18, 25, 35], 'Temperature'
         )
         self.pressure = EnviroObject(
-            deque([defVal] * maxLen, maxlen=maxLen),
-            "hPa",
-            [250, 650, 1013.25, 1015],
-            "Pressure"
+            deque([defVal] * maxLen, maxlen=maxLen), 'hPa', [250, 650, 1013.25, 1015], 'Pressure'
         )
         self.humidity = EnviroObject(
-            deque([defVal] * maxLen, maxlen=maxLen),
-            "%",
-            [20, 30, 60, 70],
-            "Humidity"
+            deque([defVal] * maxLen, maxlen=maxLen), '%', [20, 30, 60, 70], 'Humidity'
         )
         self.light = EnviroObject(
-            deque([defVal] * maxLen, maxlen=maxLen),
-            "Lux",
-            [-1, -1, 30000, 100000],
-            "Light"
+            deque([defVal] * maxLen, maxlen=maxLen), 'Lux', [-1, -1, 30000, 100000], 'Light'
         )
         self.oxidised = EnviroObject(
-            deque([defVal] * maxLen, maxlen=maxLen),
-            "kO",
-            [-1, -1, 40, 50],
-            "Oxidized"
+            deque([defVal] * maxLen, maxlen=maxLen), 'kO', [-1, -1, 40, 50], 'Oxidized'
         )
         self.reduced = EnviroObject(
-            deque([defVal] * maxLen, maxlen=maxLen),
-            "kO",
-            [-1, -1, 450, 550],
-            "Reduced"
+            deque([defVal] * maxLen, maxlen=maxLen), 'kO', [-1, -1, 450, 550], 'Reduced'
         )
         self.nh3 = EnviroObject(
-            deque([defVal] * maxLen, maxlen=maxLen),
-            "kO",
-            [-1, -1, 200, 300],
-            "NH3"
+            deque([defVal] * maxLen, maxlen=maxLen), 'kO', [-1, -1, 200, 300], 'NH3'
         )
         self.pm1 = EnviroObject(
-            deque([defVal] * maxLen, maxlen=maxLen),
-            "ug/m3",
-            [-1, -1, 50, 100],
-            "PM1"
+            deque([defVal] * maxLen, maxlen=maxLen), 'ug/m3', [-1, -1, 50, 100], 'PM1'
         )
         self.pm25 = EnviroObject(
-            deque([defVal] * maxLen, maxlen=maxLen),
-            "ug/m3",
-            [-1, -1, 50, 100],
-            "PM25"
+            deque([defVal] * maxLen, maxlen=maxLen), 'ug/m3', [-1, -1, 50, 100], 'PM25'
         )
         self.pm10 = EnviroObject(
-            deque([defVal] * maxLen, maxlen=maxLen),
-            "ug/m3",
-            [-1, -1, 50, 100],
-            "PM10"
+            deque([defVal] * maxLen, maxlen=maxLen), 'ug/m3', [-1, -1, 50, 100], 'PM10'
         )
 
     def as_list(self, tempUnit=TEMP_UNIT_C):
@@ -230,7 +204,7 @@ class EnviroData:
             self.pm25.as_dict(),
             self.pm10.as_dict(),
         ]
-    
+
     def convert_C2F(self, celsius):
         return self.temperature._convert_C2F(celsius)
 

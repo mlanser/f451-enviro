@@ -38,6 +38,7 @@ Homepage = "https://github.com/mlanser/f451-enviro"
 
 [project.scripts]
 f451_enviro = "f451_enviro.__main__:main"
+en_demo = "f451_enviro.en_demo:main"
 
 [tool.bumpver]
 current_version = "1.1.1"

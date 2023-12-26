@@ -23,13 +23,15 @@ import time
 import colorsys
 
 from random import randint
+from subprocess import PIPE, Popen
+
+
+from . import enviro_data as f451EnviroData
 
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 from fonts.ttf import RobotoMedium  # type: ignore
-
-from subprocess import PIPE, Popen
 
 # Support for ST7735 LCD
 try:
@@ -87,32 +89,33 @@ __all__ = [
     'KWD_DISPLAY',
     'KWD_PROGRESS',
     'KWD_SLEEP',
-    'KWD_DISPL_TOP_X',
-    'KWD_DISPL_TOP_Y',
-    'KWD_DISPL_TOP_BAR',
+    'KWD_DISPLAY_TOP_X',
+    'KWD_DISPLAY_TOP_Y',
+    'KWD_DISPLAY_TOP_BAR',
 ]
 
 
+# fmt: off
 # =========================================================
 #              M I S C .   C O N S T A N T S
 # =========================================================
-DEF_ROTATION = 0        # Default display rotation
-DEF_DISPL_MODE = 0      # Default display mode
-DEF_SLEEP = 600         # Default time to sleep (in seconds)
-DEF_LCD_OFFSET_X = 1    # Default horizontal offset for LCD
-DEF_LCD_OFFSET_Y = 1    # Default vertical offseet for LCD
+DEF_ROTATION = 0                # Default display rotation
+DEF_DISPL_MODE = 0              # Default display mode
+DEF_SLEEP = 600                 # Default time to sleep (in seconds)
+DEF_LCD_OFFSET_X = 1            # Default horizontal offset for LCD
+DEF_LCD_OFFSET_Y = 1            # Default vertical offseet for LCD
 
 STATUS_ON = True
 STATUS_OFF = False
 
-DISPL_TOP_X = 2         # X/Y ccordinate of top-left corner for LCD content
+DISPL_TOP_X = 2                 # X/Y ccordinate of top-left corner for LCD content
 DISPL_TOP_Y = 2
-DISPL_TOP_BAR = 21      # Height (in px) of top bar
+DISPL_TOP_BAR = 21              # Height (in px) of top bar
 
-PROX_DEBOUNCE = 0.5     # Delay to debounce proximity sensor on 'tap'
-PROX_LIMIT = 1500       # Threshold for proximity sensor to detect 'tap'
+PROX_DEBOUNCE = 0.5             # Delay to debounce proximity sensor on 'tap'
+PROX_LIMIT = 1500               # Threshold for proximity sensor to detect 'tap'
 
-MAX_SPARKLE_PCNT = 0.1  # 10% sparkles
+MAX_SPARKLE_PCNT = 0.1          # 10% sparkles
 
 RGB_BLACK = (0, 0, 0)
 RGB_WHITE = (255, 255, 255)
@@ -127,6 +130,7 @@ RGB_CHROME = (219, 226, 233)    # Chrome (lt grey)
 RGB_GREY = (67, 70, 75)         # Dark Steel Grey
 RGB_GREY2 = (57, 61, 71)        # Anthracite
 RGB_PURPLE = (127, 0, 255)
+RGB_GREY_BLUE = (33, 46, 82)
 
 # RGB colors and palette for values on combo/text screen
 COLOR_PALETTE = [
@@ -140,12 +144,15 @@ COLOR_PALETTE = [
 COLOR_BG = RGB_BLACK            # Default background
 COLOR_TXT = RGB_CHROME          # Default text on background
 COLOR_PBAR = RGB_CYAN           # Default progress bar
+COLOR_PBAR_BG = RGB_GREY_BLUE   # Default prog bar background
 
-FONT_SIZE_SM = 10  # Small font size
-FONT_SIZE_MD = 16  # Medium font size
-FONT_SIZE_LG = 20  # Large font size
+FONT_SIZE_SM = 10               # Small font size
+FONT_SIZE_MD = 16               # Medium font size
+FONT_SIZE_LG = 20               # Large font size
 
-ROTATE_90 = 90  # Rotate 90 degrees
+ROTATE_90 = 90                  # Rotate 90 degrees
+ROTATE_180 = 180                # Rotate 180 degrees
+STEP_1 = 1                      # Display mode step
 
 
 # =========================================================
@@ -155,9 +162,13 @@ KWD_ROTATION = 'ROTATION'
 KWD_DISPLAY = 'DISPLAY'
 KWD_PROGRESS = 'PROGRESS'
 KWD_SLEEP = 'SLEEP'
-KWD_DISPL_TOP_X = 'TOP_X'
-KWD_DISPL_TOP_Y = 'TOP_Y'
-KWD_DISPL_TOP_BAR = 'TOP_BAR'
+KWD_DISPLAY_MIN = 'DISPLAYMIN'
+KWD_DISPLAY_MAX = 'DISPLAYMAX'
+
+KWD_DISPLAY_TOP_X = 'TOP_X'
+KWD_DISPLAY_TOP_Y = 'TOP_Y'
+KWD_DISPLAY_TOP_BAR = 'TOP_BAR'
+# fmt: on
 
 
 # =========================================================
@@ -166,6 +177,34 @@ KWD_DISPL_TOP_BAR = 'TOP_BAR'
 class EnviroError(Exception):
     """Custom exception class"""
 
+    def __init__(self, errMsg='Unknown Enviro+ error'):
+        super().__init__(errMsg)
+
+
+def prep_data(inData, lenSlice=0):
+    """Prep data for Enviro+
+
+    This function will filter data to ensure we don't have incorrect
+    outliers (e.g. from faulty sensors, etc.). The final data set will
+    have only valid values. Any invalid values will be replaced with
+    0's so that we can display the set on the Enviro+ LCD.
+
+    This will technically affect the min/max values for the set. However,
+    we're displaying this data on an 0.96" LCD. So visual 'accuracy' is
+    already less than ideal ;-)
+
+    Args:
+        inData: 'DataUnit' named tuple with 'raw' data from sensors
+        lenSlice: (optional) length of data slice
+
+    Returns:
+        'DataUnit' named tuple with the following fields:
+            data   = [list of values],
+            valid  = <tuple with min/max>,
+            unit   = <unit string>,
+            label  = <label string>,
+            limits = [list of limits]
+    """
     pass
 
 
@@ -201,7 +240,10 @@ class Enviro:
         TOP_Y:      Y coordinate for top-left corner on LCD
         TOP_BAR:    Height (in px) of top bar
 
-    Methods:
+    Methods & Properties:
+        displayWidth:       Width (pixels) of 0.96" LCD display
+        displayHeight:      Height (pixels) of 0.96" LCD display
+        is_fake:            Return 'False' if physical Sense HAT
         get_CPU_temp:       Get CPU temp which we then can use to compensate temp reads
         get_proximity:      Get proximity value from sensor
         get_lux:            Get illumination value from sensor
@@ -210,7 +252,10 @@ class Enviro:
         get_temperature:    Get temperature from sensor
         get_gas_data:       Get gas data from sensor
         get_particles:      Get particle data from sensor
+        update_display_mode: Switch display mode
+        update_sleep_mode:  Switch to/from sleep mode
         display_init:       Initialize display so we can draw on it
+        display_rotate:     Rotate display +/- 90 degrees
         display_on:         Turn 'on' LCD
         display_off:        Turn 'off' LCD
         display_blank:      Erase LCD
@@ -239,9 +284,9 @@ class Enviro:
         bus = SMBus(1)
         self._BME280 = BME280(i2c_dev=bus)  # BME280 temperature, pressure, humidity sensor
 
-        self._PMS5003 = PMS5003()           # PMS5003 particulate sensor
-        self._LTR559 = ltr559               # Proximity sensor
-        self._GAS = gas                     # Enviro+
+        self._PMS5003 = PMS5003()  # PMS5003 particulate sensor
+        self._LTR559 = ltr559  # Proximity sensor
+        self._GAS = gas  # Enviro+
 
         # Initialize LCD and canvas
         self._LCD = self._init_LCD(**settings)  # ST7735 0.96" 160x80 LCD
@@ -250,12 +295,15 @@ class Enviro:
         self.displMode = settings.get(KWD_DISPLAY, DEF_DISPL_MODE)
         self.displProgress = bool(settings.get(KWD_PROGRESS, STATUS_ON))
 
+        self.displModeMin = settings.get(KWD_DISPLAY_MIN, 0)
+        self.displModeMax = settings.get(KWD_DISPLAY_MAX, 0)
+
         self.displSleepTime = settings.get(KWD_SLEEP, DEF_SLEEP)
         self.displSleepMode = False
 
-        self.displTopX = settings.get(KWD_DISPL_TOP_X, DISPL_TOP_X)
-        self.displTopY = settings.get(KWD_DISPL_TOP_Y, DISPL_TOP_Y)
-        self.displTopBar = settings.get(KWD_DISPL_TOP_BAR, DISPL_TOP_BAR)
+        self.displTopX = settings.get(KWD_DISPLAY_TOP_X, DISPL_TOP_X)
+        self.displTopY = settings.get(KWD_DISPLAY_TOP_Y, DISPL_TOP_Y)
+        self.displTopBar = settings.get(KWD_DISPLAY_TOP_BAR, DISPL_TOP_BAR)
 
         self._img = None
         self._draw = None
@@ -263,11 +311,11 @@ class Enviro:
         self._fontSM = None
 
     @property
-    def widthLCD(self):
+    def displayWidth(self):
         return self._LCD.width
 
     @property
-    def heightLCD(self):
+    def displayHeight(self):
         return self._LCD.height
 
     def _init_LCD(self, **kwargs):
@@ -347,9 +395,38 @@ class Enviro:
             data = self._PMS5003.read()
 
         except SerialTimeoutError as e:
-            raise EnviroError(f"PMS5003 Error: {e}")  # noqa: B904
+            raise EnviroError(f'PMS5003 Error: {e}') from e
 
         return data
+
+    def update_display_mode(self, direction):
+        """Change LCD display mode
+
+        Change the LED display mode and also wake
+        up the display if needed.
+
+        Args:
+            direction: pos/neg integer
+        """
+        if int(direction) < 0:
+            self.displMode = (
+                self.displModeMax
+                if self.displMode <= self.displModeMin
+                else self.displMode - STEP_1
+            )
+        else:
+            self.displMode = (
+                self.displModeMin
+                if self.displMode >= self.displModeMax
+                else self.displMode + STEP_1
+            )
+
+        # Wake up display?
+        if not self.displSleepMode:
+            self.display_on()
+
+        # Clear the display
+        # self._SENSE.clear()
 
     def update_sleep_mode(self, *args):
         """Enable or disable LCD sleep mode
@@ -360,14 +437,9 @@ class Enviro:
         Args:
             args: list of one or more flags
         """
-        sleep = any(args)
-
-        # Do we need to turn off LCD?
-        if sleep and not self.displSleepMode:
+        if any(args) and not self.displSleepMode:
             self.display_off()
-
-        # Do we need to turn on LCD?
-        elif not sleep and self.displSleepMode:
+        elif not any(args) and self.displSleepMode:
             self.display_on()
 
     def display_init(self):
@@ -383,48 +455,99 @@ class Enviro:
         self._fontMD = ImageFont.truetype(RobotoMedium, FONT_SIZE_MD)
         self._fontSM = ImageFont.truetype(RobotoMedium, FONT_SIZE_SM)
 
+    def display_rotate(self, direction, step180=False):
+        """Rotate LED display
+
+        Since 0.96" LCD is rectangular (160x80), rotating only 90 degrees 
+        obvioulsy affects aspect ratio. However, it's the responsibility 
+        of the main app to ensure proper rotation, and in most cases
+        that probably means rotating 180 degrees at a time.
+
+        Args:
+            direction: pos/neg integer
+            step180: if 'True' then we rotate full 180 degress each time
+        """
+        if step180:
+            self.displRotation = 0 if self.displRotation >= 180 else 180
+
+        elif int(direction) < 0:
+            self.displRotation = 270 if self.displRotation <= 0 else self.displRotation - ROTATE_90
+
+        else:
+            self.displRotation = 0 if self.displRotation >= 270 else self.displRotation + ROTATE_90
+
+        # Rotate as needed
+        self._SENSE.set_rotation(self.displRotation)
+
+        # Wake up display?
+        if not self.is_fake() and self.displSleepMode:
+            self.display_on()
+
+    # fmt: off
     def display_on(self):
         """Turn 'on' LCD display"""
-        self.displSleepMode = False  # Reset 'sleep mode' flag
-        self._LCD.display_on()
-        self.display_blank()
+        if not self.is_fake():
+            self._LCD.display_on()
+        self.displSleepMode = False     # Reset 'sleep mode' flag
+        # self.display_blank()          # Clear LCD
 
     def display_off(self):
         """Turn 'off' LCD display"""
-        self.display_blank()
-        self._LCD.display_off()
-        self.displSleepMode = True  # Set 'sleep mode' flag
+        if not self.is_fake():
+            self.display_blank()        # Clear LCD
+            self._LCD.display_off()
+        self.displSleepMode = True      # Set 'sleep mode' flag
 
     def display_blank(self):
         """Show clear/blank LCD"""
         # Skip this if we're in 'sleep' mode
-        if self.displSleepMode:
-            return
-
-        img = Image.new('RGB', (self._LCD.width, self._LCD.height), color=RGB_BLACK)
-        self._LCD.display(img)
+        if not (self.is_fake() or self.displSleepMode):
+            img = Image.new('RGB', (self._LCD.width, self._LCD.height), color=RGB_BLACK)
+            self._LCD.display(img)
 
     def display_reset(self):
         """Reset and clear LCD"""
-        self.display_init()
+        if not self.is_fake():
+            self.display_init()
+    # fmt: on
 
-    def display_as_graph(self, data):
+    def display_as_graph(self, data, minMax=None, colorMap=None):
         """Display graph and data point as text label
 
         This method will redraw the entire LCD
 
         Args:
             data:
-                'dict' as follows:
-                    {
-                        "data": [list of values],
-                        "unit" <unit string>,
-                        "label": <label string>,
-                        "limit": [list of limits]
-                    }
+                'DataUnit' named tuple with the following fields:
+                    data   = [list of values],
+                    valid  = <tuple with min/max>,
+                    unit   = <unit string>,
+                    label  = <label string>,
+                    limits = [list of limits]
+            minMax:
+                'tuple' with min/max values. If 'None' then calculate locally.
+            colorMap:
+                'list' (optional) custom color map to use if data has defined 'limits'
         """
+
+        def _scrub(data):
+            """Scrub 'None' from data"""
+            return [0 if i is None else i for i in data]
+
+        def _clamp(val, minVal=0, maxVal=1):
+            """Clamp values to min/max range"""
+            return min(max(float(minVal), float(val)), float(maxVal))
+
+        def _scale(val, minMax):
+            """Scale value to fit on SenseHAT LED
+
+            This is similar to 'num_to_range()' in f451 Labs Common module,
+            but simplified for fitting values to SenseHAT LED display dimensions.
+            """
+            return float(val - minMax[0]) / float(minMax[1] - minMax[0]) * DISPL_MAX_ROW
+
         # Skip this if we're in 'sleep' mode
-        if self.displSleepMode:
+        if self.is_fake() or self.displSleepMode:
             return
 
         # Scale values in data set between 0 and 1

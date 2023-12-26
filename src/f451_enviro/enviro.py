@@ -493,13 +493,19 @@ class Enviro:
         elif not any(args) and self.displSleepMode:
             self.display_on()
 
-    def display_init(self):
+    def display_init(self, **kwargs):
         """Initialize LCD drawing area
 
         This only initializes the drawing area without actually
         drawing or displying anything on the LCD. So we can/should
         do this regardless of sleep mode.
+
+        Args:
+            kwargs: optional values for displayMode min/max values
         """
+        self.displModeMin = kwargs.get(KWD_DISPLAY_MIN, self.displModeMin)
+        self.displModeMax = kwargs.get(KWD_DISPLAY_MAX, self.displModeMax)
+        
         self._img = Image.new('RGB', (self._LCD.width, self._LCD.height), color=RGB_BLACK)
         self._draw = ImageDraw.Draw(self._img)
         self._fontLG = ImageFont.truetype(RobotoMedium, FONT_SIZE_LG)

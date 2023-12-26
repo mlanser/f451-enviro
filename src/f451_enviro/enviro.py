@@ -672,8 +672,9 @@ class Enviro:
             test = [int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0)]
             test2 = _get_rgb(colors[i])
             r, g, b = [int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0)]
-            print(test)
-            print(test2)
+            r2, g2, b2 = _get_rgb(colors[i])
+            print(f"{r}:{g}:{b} - {r2}:{b2}:{g2}")
+            print(type(test2))
             assert False
 
             # Draw a 1-pixel wide rectangle of given color

@@ -85,6 +85,7 @@ except ImportError:
 __all__ = [
     'Enviro',
     'EnviroError',
+    'prep_data',
     'KWD_ROTATION',
     'KWD_DISPLAY',
     'KWD_PROGRESS',
@@ -205,7 +206,57 @@ def prep_data(inData, lenSlice=0):
             label  = <label string>,
             limits = [list of limits]
     """
-    pass
+
+    def _is_valid(val, valid, allowNone=True):
+        """Verify value 'valid'
+
+        This method allows us to verify that a given
+        value falls within the 'valid' ranges are for 
+        a given data set. Any value outside the range 
+        is considered an error and is replaced by a 
+        default value.
+
+        NOTE: This local function is similar to the 'is_valid()' 
+              function in f451 Labs Common library. We have a copy
+              here so that the f451 Labs SenseHat library does not 
+              have another dependency
+
+        Args:
+            val: value to check
+            valid: 'tuple' with min/max values for valid range
+            allowNone: if 'True', then skip compare if 'valid' is 'None
+
+        Returns:
+            'True' if value is valid, else 'False'
+        """
+        if valid is None or not all(valid):
+            return allowNone
+
+        if val is not None and any(valid):
+            isValid = True
+            if valid[0] is not None:
+                isValid &= float(val) >= float(valid[0])
+            if valid[1] is not None:
+                isValid &= float(val) <= float(valid[1])
+
+            return isValid
+
+        return False
+
+    # Size of data slice we want to send to Sense HAT. The 'f451 Labs SenseHat'
+    # library will ulimately only display the last 8 values anyway.
+    dataSlice = list(inData.data)[-lenSlice:]
+
+    # Return filtered data
+    dataClean = [i if _is_valid(i, inData.valid) else 0 for i in dataSlice]
+
+    return f451EnviroData.DataUnit(
+        data=dataClean,
+        valid=inData.valid,
+        unit=inData.unit,
+        label=inData.label,
+        limits=inData.limits,
+    )
 
 
 # =========================================================
@@ -467,6 +518,9 @@ class Enviro:
             direction: pos/neg integer
             step180: if 'True' then we rotate full 180 degress each time
         """
+        if self.is_fake():
+            return
+
         if step180:
             self.displRotation = 0 if self.displRotation >= 180 else 180
 
@@ -476,11 +530,14 @@ class Enviro:
         else:
             self.displRotation = 0 if self.displRotation >= 270 else self.displRotation + ROTATE_90
 
+        # fmt: off
         # Rotate as needed
-        self._SENSE.set_rotation(self.displRotation)
-
+        self._LCD = self._init_LCD(ROTATION=self.displRotation) # Re-init LCD to change rotation
+        self.display_init()                                     # Also need to re-init display as 
+                                                                # this changes aspect ratio, etc.
+        #fmt: on
         # Wake up display?
-        if not self.is_fake() and self.displSleepMode:
+        if self.displSleepMode:
             self.display_on()
 
     # fmt: off
@@ -538,45 +595,97 @@ class Enviro:
             """Clamp values to min/max range"""
             return min(max(float(minVal), float(val)), float(maxVal))
 
-        def _scale(val, minMax):
+        def _scale(val, minMax, height):
             """Scale value to fit on SenseHAT LED
 
             This is similar to 'num_to_range()' in f451 Labs Common module,
             but simplified for fitting values to SenseHAT LED display dimensions.
             """
-            return float(val - minMax[0]) / float(minMax[1] - minMax[0]) * DISPL_MAX_ROW
+            return float(val - minMax[0]) / float(minMax[1] - minMax[0]) * height
+
+        def _get_rgb(val, curRow, height):
+            """Get a color value using 'colorsys' library
+            
+            We use this method if there is no color map and/or 
+            no limits are defined for a give data set.
+            """
+            # Should the pixel on this row be black?
+            if curRow < (height - int(val * height)):
+                return RGB_BLACK
+
+            # Convert the values to colors from red to blue
+            color = (1.0 - val) * 0.6
+            return tuple(int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0))
+
+        def _get_color_from_map(val, minMax, curRow, height, width, limits, colorMap):
+            # Should the pixel on this row be black?
+            scaledVal = int(_clamp(_scale(val, minMax, height), 0, width))
+            if curRow < (height - scaledVal):
+                return RGB_BLACK
+
+            # Map value against color map. Not taht we're mapping original 
+            # value against the color map as the color map limits use
+            # actual full-scale values.
+            if val > round(limits[2], 1):
+                color = colorMap.high
+            elif val <= round(limits[1], 1):
+                color = colorMap.low
+            else:
+                color = colorMap.normal
+
+            return color
 
         # Skip this if we're in 'sleep' mode
         if self.is_fake() or self.displSleepMode:
             return
 
-        # Scale values in data set between 0 and 1
-        vmin = min(data['data'])
-        vmax = max(data['data'])
-        colors = [(v - vmin + 1) / (vmax - vmin + 1) for v in data['data']]
+        # Create a list with 'displayWidth' num values. We add 0 (zero) to
+        # the beginning of the list if whole set has less than 'displayWidth'
+        # num values. This allows us to simulate 'scrolling' right to left. We
+        # grab last 'n' values that can fit LED and scrub any 'None' values. If
+        # there are not enough values to to fill display, we add 0's
+        displWidth = self.displayWidth
+        displHeight = self.displayHeight
+        subSet = _scrub(data.data[-displWidth:])
+        lenSet = min(displWidth, len(subSet))
+
+        # Extend 'value' list as needed
+        values = (
+            subSet
+            if lenSet == displWidth
+            else [0 for _ in range(displWidth - lenSet)] + subSet
+        )
 
         # Reserve space for progress bar?
         yMin = 2 if (self.displProgress) else 0
-        self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)
+        vmin = min(values) if minMax is None else minMax[0]
+        vmax = max(values) if minMax is None else minMax[1]
+
+        colors = [(v - vmin + 1) / (vmax - vmin + 1) for v in values]
+        self._draw.rectangle((0, yMin, displWidth, displHeight), RGB_BLACK)
 
         for i in range(len(colors)):
             # Convert the values to colors from red to blue
             color = (1.0 - colors[i]) * 0.6
             r, g, b = [int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0)]
+            print(r)
+            print(g)
+            print(b)
+            assert False
 
             # Draw a 1-pixel wide rectangle of given color
-            self._draw.rectangle((i, self.displTopBar, i + 1, self._LCD.height), (r, g, b))
+            self._draw.rectangle((i, self.displTopBar, i + 1, displHeight), (r, g, b))
 
             # Draw and overlay a line graph in black
             line_y = (
-                self._LCD.height
-                - (self.displTopBar + (colors[i] * (self._LCD.height - self.displTopBar)))
+                displHeight
+                - (self.displTopBar + (colors[i] * (displHeight - self.displTopBar)))
                 + self.displTopBar
             )
             self._draw.rectangle((i, line_y, i + 1, line_y + 1), RGB_BLACK)
 
         # Write the text at the top in black
-        message = '{}: {:.1f} {}'.format(data['label'][:4], data['data'][-1], data['unit'])
+        message = '{}: {:.1f} {}'.format(data.label[:4], values[-1], data.unit)
         self._draw.text((0, 0), message, font=self._fontMD, fill=COLOR_TXT)
 
         self._LCD.display(self._img)

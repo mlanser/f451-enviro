@@ -19,7 +19,7 @@ def main():
         # Display text on LCD
         enviro.display_message("Hello world!")
 
-        for _ in range(100):
+        for _ in range(50):
             enviro.display_sparkle()
             time.sleep(0.2)
 

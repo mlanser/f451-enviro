@@ -609,16 +609,12 @@ class Enviro:
             """
             return float(val - minMax[0]) / float(minMax[1] - minMax[0]) * height
 
-        def _get_rgb(val, curRow, height):
+        def _get_rgb(val):
             """Get a color value using 'colorsys' library
             
             We use this method if there is no color map and/or 
             no limits are defined for a give data set.
             """
-            # Should the pixel on this row be black?
-            if curRow < (height - int(val * height)):
-                return RGB_BLACK
-
             # Convert the values to colors from red to blue
             color = (1.0 - val) * 0.6
             return tuple(int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0))
@@ -674,8 +670,10 @@ class Enviro:
             # Convert the values to colors from red to blue
             color = (1.0 - colors[i]) * 0.6
             test = [int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0)]
+            test2 = _get_rgb(colors[i])
             r, g, b = [int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0)]
             print(test)
+            print(test2)
             assert False
 
             # Draw a 1-pixel wide rectangle of given color

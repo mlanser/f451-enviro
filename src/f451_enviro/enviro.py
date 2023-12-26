@@ -673,10 +673,9 @@ class Enviro:
         for i in range(len(colors)):
             # Convert the values to colors from red to blue
             color = (1.0 - colors[i]) * 0.6
+            test = [int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0)]
             r, g, b = [int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0)]
-            print(r)
-            print(g)
-            print(b)
+            print(test)
             assert False
 
             # Draw a 1-pixel wide rectangle of given color

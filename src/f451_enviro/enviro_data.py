@@ -10,7 +10,6 @@ Dependencies:
 
 from collections import deque, namedtuple
 
-
 __all__ = [
     'EnviroData',
     'EnviroObject',
@@ -36,7 +35,8 @@ TEMP_UNIT_K = 'K'  # Kelvin
 #                     M A I N   C L A S S
 # =========================================================
 # Common graph data structure
-DataUnit = namedtuple("DataUnit", "data valid unit label limits")
+DataUnit = namedtuple('DataUnit', 'data valid unit label limits')
+
 
 class EnviroObject:
     """Data structure for environment data object.

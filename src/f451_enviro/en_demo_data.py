@@ -2,7 +2,7 @@
 
 This class defines a data structure that can be used 
 to manage misc. demo data. This object follows overall 
-design of SenseHat Data object, but is customized for
+design of Enviro+ Data object, but is customized for
 random demo data collected in the demo application.
 
 Dependencies:
@@ -10,12 +10,7 @@ Dependencies:
 """
 
 from collections import deque
-import f451_sensehat.sensehat_data as f451SenseData
-
-
-# =========================================================
-#              M I S C .   C O N S T A N T S
-# =========================================================
+import f451_enviro.enviro_data as f451EnviroData
 
 
 # =========================================================
@@ -28,7 +23,7 @@ class DemoData:
     with the 'SystemData' and 'SenseData' classes.
 
     Attributes:
-        number1: random number 
+        number1: random number
         number2: random number
 
     Methods:
@@ -45,14 +40,14 @@ class DemoData:
         Returns:
             'dict' - holds entiure data structure
         """
-        self.number1 = f451SenseData.SenseObject(
+        self.number1 = f451EnviroData.EnviroObject(
             deque([defVal] * maxLen, maxlen=maxLen),
             (1, 200),  # min/max range for valid data
             'km/h',
             [None, None, None, None],
             'Demo Speed',
         )
-        self.number2 = f451SenseData.SenseObject(
+        self.number2 = f451EnviroData.EnviroObject(
             deque([defVal] * maxLen, maxlen=maxLen),
             (0, 100),  # min/max range for valid data
             '%',
@@ -65,7 +60,7 @@ class DemoData:
             self.number1.as_dict(),
             self.number2.as_dict(),
         ]
-    
+
     def as_dict(self):
         return {
             'number1': self.number1.as_dict(),

@@ -40,7 +40,7 @@ from . import en_demo_data as f451DemoData
 import f451_common.common as f451Common
 import f451_common.logger as f451Logger
 
-import f451_sensehat.sensehat as f451SenseHat
+import f451_enviro.enviro as f451Enviro
 
 from rich.console import Console
 
@@ -58,11 +58,11 @@ install_rich_traceback(show_locals=True)
 # =========================================================
 #          G L O B A L S   A N D   H E L P E R S
 # =========================================================
-APP_VERSION = '1.0.0'
-APP_NAME = 'f451 Labs - SenseHat Demo'
-APP_NAME_SHORT = 'SH Demo'
-APP_LOG = 'f451-sensehat-demo.log'  # Individual logs for devices with multiple apps
-APP_SETTINGS = 'sh_demo_settings.toml' # Standard for all f451 Labs projects
+APP_VERSION = '0.0.0'
+APP_NAME = 'f451 Labs - Enviro+ Demo'
+APP_NAME_SHORT = 'EN Demo'
+APP_LOG = 'f451-enviro-demo.log'    # Individual logs for devices with multiple apps
+APP_SETTINGS = 'en_demo_settings.toml' # Settings for demo
 
 APP_MIN_SENSOR_READ_WAIT = 1        # Min wait in sec between sensor reads
 APP_MIN_PROG_WAIT = 1               # Remaining min (loop) wait time to display prog bar
@@ -73,8 +73,8 @@ APP_DELTA_FACTOR = 0.02             # Any change within X% is considered negliga
 APP_DATA_TYPES = ['number1', 'number2']
 
 APP_DISPLAY_MODES = {
-    f451SenseHat.KWD_DISPLAY_MIN: const.MIN_DISPL,
-    f451SenseHat.KWD_DISPLAY_MAX: 2,
+    f451Enviro.KWD_DISPLAY_MIN: const.MIN_DISPL,
+    f451Enviro.KWD_DISPLAY_MAX: const.MAX_DISPL,
 }
 
 class AppRT(f451Common.Runtime):
@@ -147,11 +147,11 @@ class AppRT(f451Common.Runtime):
 
         self.console.rule('Config Settings', style='grey', align='center')
 
-        self.logger.log_debug(f"DISPL ROT:   {self.sensors['SenseHat'].displRotation}")
-        self.logger.log_debug(f"DISPL MODE:  {self.sensors['SenseHat'].displMode}")
-        self.logger.log_debug(f"DISPL PROGR: {self.sensors['SenseHat'].displProgress}")
-        self.logger.log_debug(f"SLEEP TIME:  {self.sensors['SenseHat'].displSleepTime}")
-        self.logger.log_debug(f"SLEEP MODE:  {self.sensors['SenseHat'].displSleepMode}")
+        self.logger.log_debug(f"DISPL ROT:   {self.sensors['Enviro'].displRotation}")
+        self.logger.log_debug(f"DISPL MODE:  {self.sensors['Enviro'].displMode}")
+        self.logger.log_debug(f"DISPL PROGR: {self.sensors['Enviro'].displProgress}")
+        self.logger.log_debug(f"SLEEP TIME:  {self.sensors['Enviro'].displSleepTime}")
+        self.logger.log_debug(f"SLEEP MODE:  {self.sensors['Enviro'].displSleepMode}")
 
         self.logger.log_debug(f'IO DEL:      {self.ioDelay}')
         self.logger.log_debug(f'IO WAIT:     {self.ioWait}')
@@ -203,32 +203,6 @@ class AppRT(f451Common.Runtime):
         self.sensors[sensorName] = sensorType(self.config)
         return self.sensors[sensorName]
 
-    def update_action(self, cliUI, msg=None):
-        """Wrapper to help streamline code"""
-        if cliUI:
-            self.console.update_action(msg) # type: ignore
-
-    def update_progress(self, cliUI, prog=None, msg=None):
-        """Wrapper to help streamline code"""
-        if cliUI:
-            self.console.update_progress(prog, msg) # type: ignore        
-
-    def update_upload_status(self, cliUI, lastTime, lastStatus):
-        """Wrapper to help streamline code"""
-        if cliUI:
-            self.console.update_upload_status(      # type: ignore
-                lastTime, 
-                lastStatus, 
-                lastTime + self.uploadDelay, 
-                self.numUploads, 
-                self.maxUploads
-            )
-
-    def update_data(self, cliUI, data):
-        """Wrapper to help streamline code"""
-        if cliUI:
-            self.console.update_data(data) # type: ignore
-
 
 # Define app runtime object
 appRT = AppRT(APP_NAME, APP_VERSION, APP_NAME_SHORT, APP_LOG, APP_SETTINGS)
@@ -268,85 +242,12 @@ async def upload_demo_data(*args, **kwargs):
     if upload.get('data') is not None:
         sendQ.append(send_data(upload.get('data')))  # type: ignore
 
-    # deviceID = appRT.sensors['SenseHat'].get_ID(DEF_ID_PREFIX)
+    # deviceID = appRT.sensors['Enviro'].get_ID(DEF_ID_PREFIX)
 
     await asyncio.gather(*sendQ)
 
 
-def btn_up(event):
-    """SenseHat Joystick UP event
-
-    Rotate display by -90 degrees and reset screen blanking
-    """
-    global appRT
-
-    if event.action != f451SenseHat.BTN_RELEASE:
-        appRT.sensors['SenseHat'].display_rotate(-1)
-        appRT.displayUpdate = time.time()
-
-
-def btn_down(event):
-    """SenseHat Joystick DOWN event
-
-    Rotate display by +90 degrees and reset screen blanking
-    """
-    global appRT
-
-    if event.action != f451SenseHat.BTN_RELEASE:
-        appRT.sensors['SenseHat'].display_rotate(1)
-        appRT.displayUpdate = time.time()
-
-
-def btn_left(event):
-    """SenseHat Joystick LEFT event
-
-    Switch display mode by 1 mode and reset screen blanking
-    """
-    global appRT
-
-    if event.action != f451SenseHat.BTN_RELEASE:
-        appRT.sensors['SenseHat'].update_display_mode(-1)
-        appRT.displayUpdate = time.time()
-
-
-def btn_right(event):
-    """SenseHat Joystick RIGHT event
-
-    Switch display mode by 1 mode and reset screen blanking
-    """
-    global appRT
-
-    if event.action != f451SenseHat.BTN_RELEASE:
-        appRT.sensors['SenseHat'].update_display_mode(1)
-        appRT.displayUpdate = time.time()
-
-
-def btn_middle(event):
-    """SenseHat Joystick MIDDLE (down) event
-
-    Turn display on/off
-    """
-    global appRT
-
-    if event.action != f451SenseHat.BTN_RELEASE:
-        # Wake up?
-        if appRT.sensors['SenseHat'].displSleepMode:
-            appRT.sensors['SenseHat'].update_sleep_mode(False)
-            appRT.displayUpdate = time.time()
-        else:
-            appRT.sensors['SenseHat'].update_sleep_mode(True)
-
-
-APP_JOYSTICK_ACTIONS = {
-    f451SenseHat.KWD_BTN_UP: btn_up,
-    f451SenseHat.KWD_BTN_DWN: btn_down,
-    f451SenseHat.KWD_BTN_LFT: btn_left,
-    f451SenseHat.KWD_BTN_RHT: btn_right,
-    f451SenseHat.KWD_BTN_MDL: btn_middle,
-}
-
-
-def update_SenseHat_LED(sense, data, colors=None):
+def update_Enviro_LCD(sense, data, colors=None):
     """Update Sense HAT LED display depending on display mode
 
     We check current display mode and then prep data as needed
@@ -373,13 +274,13 @@ def update_SenseHat_LED(sense, data, colors=None):
     # Check display mode. Each mode corresponds to a data type
     if sense.displMode == 1:
         minMax = _minMax(data.number1.as_tuple().data)
-        dataClean = f451SenseHat.prep_data(data.number1.as_tuple())
+        dataClean = f451Enviro.prep_data(data.number1.as_tuple())
         colorMap = _get_color_map(dataClean, colors)
         sense.display_as_graph(dataClean, minMax, colorMap)
 
     elif sense.displMode == 2:
         minMax = _minMax(data.number2.as_tuple().data)
-        dataClean = f451SenseHat.prep_data(data.number2.as_tuple())
+        dataClean = f451Enviro.prep_data(data.number2.as_tuple())
         colorMap = _get_color_map(dataClean, colors)
         sense.display_as_graph(dataClean, minMax, colorMap)
 
@@ -406,16 +307,16 @@ def init_cli_parser(appName, appVersion, setDefaults=True):
 
     # Add app-specific CLI args
     parser.add_argument(
-        '--noLED',
+        '--noLCD',
         action='store_true',
         default=False,
-        help='do not display output on LED',
+        help='do not display output on LCD',
     )
     parser.add_argument(
         '--progress',
         action='store_true',
         default=False,
-        help='show upload progress bar on LED',
+        help='show upload progress bar on LCD',
     )
     parser.add_argument(
         '--uploads',
@@ -481,7 +382,7 @@ def collect_data(app, data, timeCurrent):
     data.number1.data.append(newData.number1)
     data.number2.data.append(newData.number2)
 
-    update_SenseHat_LED(app.sensors['SenseHat'], data)
+    update_Enviro_LCD(app.sensors['Enviro'], data)
 
     return exitApp
 
@@ -506,15 +407,15 @@ def main_loop(app, data):
             # fmt: off
             timeCurrent = time.time()
             app.timeSinceUpdate = timeCurrent - app.timeUpdate
-            app.sensors['SenseHat'].update_sleep_mode(
-                (timeCurrent - app.displayUpdate) > app.sensors['SenseHat'].displSleepTime, # Time to sleep?
-                # cliArgs.noLED,                                                            # Force no LED?
-                app.sensors['SenseHat'].displSleepMode                                      # Already asleep?
+            app.sensors['Enviro'].update_sleep_mode(
+                (timeCurrent - app.displayUpdate) > app.sensors['Enviro'].displSleepTime, # Time to sleep?
+                # cliArgs.noLCD,                                                          # Force no LCD?
+                app.sensors['Enviro'].displSleepMode                                      # Already asleep?
             )
             # fmt: on
 
             # Update Sense HAT prog bar as needed
-            app.sensors['SenseHat'].display_progress(app.timeSinceUpdate / app.uploadDelay)
+            app.sensors['Enviro'].display_progress(app.timeSinceUpdate / app.uploadDelay)
 
             # Do we need to wait for next sensor read? Or can 
             # we collect more 'specimen'? :-P
@@ -573,12 +474,11 @@ def main(cliArgs=None):  # sourcery skip: extract-method
         # Initialize device instance which includes all sensors
         # and LED display on Sense HAT. Also initialize joystick
         # events and set 'sleep' and 'display' modes.
-        appRT.add_sensor('SenseHat', f451SenseHat.SenseHat)
-        appRT.sensors['SenseHat'].joystick_init(**APP_JOYSTICK_ACTIONS)
-        appRT.sensors['SenseHat'].display_init(**APP_DISPLAY_MODES)
-        appRT.sensors['SenseHat'].update_sleep_mode(cliArgs.noLED)
-        appRT.sensors['SenseHat'].displProgress = cliArgs.progress
-        appRT.sensors['SenseHat'].display_message(APP_NAME)
+        appRT.add_sensor('Enviro', f451Enviro.Enviro)
+        appRT.sensors['Enviro'].display_init(**APP_DISPLAY_MODES)
+        appRT.sensors['Enviro'].update_sleep_mode(cliArgs.noLCD)
+        appRT.sensors['Enviro'].displProgress = cliArgs.progress
+        appRT.sensors['Enviro'].display_message(APP_NAME)
 
         # Add fake sensor
         appRT.add_sensor('FakeSensor', f451Common.FakeSensor)
@@ -599,8 +499,8 @@ def main(cliArgs=None):  # sourcery skip: extract-method
     # -----------------------------
 
     # A bit of clean-up before we exit
-    appRT.sensors['SenseHat'].display_reset()
-    appRT.sensors['SenseHat'].display_off()
+    appRT.sensors['Enviro'].display_reset()
+    appRT.sensors['Enviro'].display_off()
 
     # Show session summary
     appRT.show_summary(cliArgs, appData)

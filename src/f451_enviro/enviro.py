@@ -671,7 +671,7 @@ class Enviro:
         # are outside min/max for current sub-set. This can happen when 
         # original data set has more values than the chunk that we display 
         # on the Enviro+ 0.96" LCD.
-        scaled = [(v - vmin + 1) / (vmax - vmin + 1) for v in values]
+        scaled = [(v - vmin + 1) / (vmax - vmin + 1) if v >= 0 else 0 for v in values]
 
         for i in range(len(scaled)):
             # Draw a 1-pixel wide rectangle of given color
@@ -692,7 +692,9 @@ class Enviro:
                 - (self.displTopBar + (scaled[i] * (displHeight - self.displTopBar)))
                 + self.displTopBar
             )
-            print(f"{line_y}:{scaled[i]:.1f}:{values[i]}")
+            # --- DEBUG ---
+            print(f"L={line_y} : S={scaled[i]:.1f} : V={values[i]}")
+            # -------------
             self._draw.rectangle((i, line_y, i + 1, line_y + 1), RGB_BLACK)
 
         # Write the text at the top in black

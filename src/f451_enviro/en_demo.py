@@ -44,8 +44,6 @@ import f451_enviro.enviro as f451Enviro
 
 from rich.console import Console
 
-# from Adafruit_IO import RequestError, ThrottlingError
-
 # Install Rich 'traceback' and 'pprint' to
 # make (debug) life is easier. Trust me!
 from rich.pretty import pprint

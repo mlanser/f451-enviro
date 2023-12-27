@@ -44,7 +44,7 @@ class DemoData:
             deque([defVal] * maxLen, maxlen=maxLen),
             (1, 200),  # min/max range for valid data
             'km/h',
-            [None, None, None, None],
+            [55, 85, 115, 145],
             'Demo Speed',
         )
         self.rndpcnt = f451EnviroData.EnviroObject(

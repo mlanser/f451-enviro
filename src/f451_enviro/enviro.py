@@ -112,6 +112,7 @@ STATUS_OFF = False
 DISPL_TOP_X = 2                 # X/Y ccordinate of top-left corner for LCD content
 DISPL_TOP_Y = 2
 DISPL_TOP_BAR = 21              # Height (in px) of top bar
+DISPL_LBL_LEN = 4               # Num chars of label to display in top bar
 
 PROX_DEBOUNCE = 0.5             # Delay to debounce proximity sensor on 'tap'
 PROX_LIMIT = 1500               # Threshold for proximity sensor to detect 'tap'
@@ -574,7 +575,7 @@ class Enviro:
             self.display_init()
     # fmt: on
 
-    def display_as_graph(self, data, minMax=None, colorMap=None):
+    def display_as_graph(self, data, minMax=None, colorMap=None, lblMaxLen=DISPL_LBL_LEN):
         """Display graph and data point as text label
 
         This method will redraw the entire LCD
@@ -591,6 +592,8 @@ class Enviro:
                 'tuple' with min/max values. If 'None' then calculate locally.
             colorMap:
                 'list' (optional) custom color map to use if data has defined 'limits'
+            lblMaxLen:
+                'in' (optional) number of chars of label to display on top row
         """
 
         def _scrub(data):
@@ -619,12 +622,7 @@ class Enviro:
             color = (1.0 - val) * 0.6
             return tuple(int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0))
 
-        def _get_color_from_map(val, minMax, curRow, height, width, limits, colorMap):
-            # Should the pixel on this row be black?
-            scaledVal = int(_clamp(_scale(val, minMax, height), 0, width))
-            if curRow < (height - scaledVal):
-                return RGB_BLACK
-
+        def _get_rgb_from_map(val, limits, colorMap):
             # Map value against color map. Not taht we're mapping original 
             # value against the color map as the color map limits use
             # actual full-scale values.
@@ -658,21 +656,35 @@ class Enviro:
             else [0 for _ in range(displWidth - lenSet)] + subSet
         )
 
-        # Reserve space for progress bar?
+        # Reserve space for progress bar? Then clear rest of display by 
+        # 'painting' it black.
         yMin = 2 if (self.displProgress) else 0
         vmin = min(values) if minMax is None else minMax[0]
         vmax = max(values) if minMax is None else minMax[1]
         self._draw.rectangle((0, yMin, displWidth, displHeight), RGB_BLACK)
 
-        # Scale incoming values to be between 0 and 1. We may need to clamp 
-        # values when values are outside min/max for current sub-set. This 
-        # can happen when original data set has more values than the chunk 
-        # that we display on the Enviro+ 0.96" LCD.
+        useColorMap = all(data.limits)
+
+        # If we don't use color maps (with defined limits), the we need to 
+        # 'calculate' the RGB values. For that we need to scale incoming values 
+        # to be between 0 and 1. We may also need to clamp values when values 
+        # are outside min/max for current sub-set. This can happen when 
+        # original data set has more values than the chunk that we display 
+        # on the Enviro+ 0.96" LCD.
         scaled = [(v - vmin + 1) / (vmax - vmin + 1) for v in values]
 
         for i in range(len(scaled)):
             # Draw a 1-pixel wide rectangle of given color
-            self._draw.rectangle((i, self.displTopBar, i + 1, displHeight), _get_rgb(scaled[i])) # type: ignore
+            if useColorMap:
+                self._draw.rectangle(
+                    (i, self.displTopBar, i + 1, displHeight), 
+                    _get_rgb_from_map(values[i], data.limits, colorMap)
+                )
+            else:
+                self._draw.rectangle(
+                    (i, self.displTopBar, i + 1, displHeight), 
+                    _get_rgb(scaled[i]) # type: ignore
+                )
 
             # Draw and overlay a line graph in black
             line_y = (
@@ -683,7 +695,7 @@ class Enviro:
             self._draw.rectangle((i, line_y, i + 1, line_y + 1), RGB_BLACK)
 
         # Write the text at the top in black
-        message = '{}: {:.1f} {}'.format(data.label[:4], values[-1], data.unit)
+        message = '{}: {:.1f} {}'.format(data.label[:lblMaxLen], values[-1], data.unit)
         self._draw.text((0, 0), message, font=self._fontMD, fill=COLOR_TXT)
 
         self._LCD.display(self._img)

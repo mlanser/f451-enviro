@@ -77,6 +77,8 @@ APP_DISPLAY_MODES = {
     f451Enviro.KWD_DISPLAY_MAX: const.MAX_DISPL,
 }
 
+APP_DISPL_LBL_LEN = 5               # Num chars of label to display in top bar
+
 class AppRT(f451Common.Runtime):
     def __init__(self, appName, appVersion, appNameShort=None, appLog=None, appSettings=None):
         super().__init__(
@@ -276,13 +278,13 @@ def update_Enviro_LCD(sense, data, colors=None):
         minMax = _minMax(data.number1.as_tuple().data)
         dataClean = f451Enviro.prep_data(data.number1.as_tuple())
         colorMap = _get_color_map(dataClean, colors)
-        sense.display_as_graph(dataClean, minMax, colorMap)
+        sense.display_as_graph(dataClean, minMax, colorMap, APP_DISPL_LBL_LEN)
 
     elif sense.displMode == 2:
         minMax = _minMax(data.number2.as_tuple().data)
         dataClean = f451Enviro.prep_data(data.number2.as_tuple())
         colorMap = _get_color_map(dataClean, colors)
-        sense.display_as_graph(dataClean, minMax, colorMap)
+        sense.display_as_graph(dataClean, minMax, colorMap, APP_DISPL_LBL_LEN)
 
     else:  # Display sparkles
         sense.display_sparkle()

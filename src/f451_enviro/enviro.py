@@ -612,6 +612,9 @@ class Enviro:
             This is similar to 'num_to_range()' in f451 Labs Common module,
             but simplified for fitting values to Enviro+ LCD display dimensions.
             """
+            if minMax is None or minMax[1] == minMax[0]:
+                return 0
+
             return float(val - minMax[0]) / float(minMax[1] - minMax[0]) * height
 
         def _get_rgb(val):

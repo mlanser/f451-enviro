@@ -40,14 +40,14 @@ class DemoData:
         Returns:
             'dict' - holds entiure data structure
         """
-        self.number1 = f451EnviroData.EnviroObject(
+        self.rndnum = f451EnviroData.EnviroObject(
             deque([defVal] * maxLen, maxlen=maxLen),
             (1, 200),  # min/max range for valid data
             'km/h',
             [None, None, None, None],
             'Demo Speed',
         )
-        self.number2 = f451EnviroData.EnviroObject(
+        self.rndpcnt = f451EnviroData.EnviroObject(
             deque([defVal] * maxLen, maxlen=maxLen),
             (0, 100),  # min/max range for valid data
             '%',
@@ -57,12 +57,12 @@ class DemoData:
 
     def as_list(self):
         return [
-            self.number1.as_dict(),
-            self.number2.as_dict(),
+            self.rndnum.as_dict(),
+            self.rndpcnt.as_dict(),
         ]
 
     def as_dict(self):
         return {
-            'number1': self.number1.as_dict(),
-            'number2': self.number2.as_dict(),
+            'number1': self.rndnum.as_dict(),
+            'number2': self.rndpcnt.as_dict(),
         }

@@ -575,7 +575,7 @@ class Enviro:
             self.display_init()
     # fmt: on
 
-    def display_as_graph(self, data, minMax=None, colorMap=None, lblMaxLen=DISPL_LBL_LEN):
+    def display_as_graph(self, data, minMax=None, colorMap=None, lblMaxLen=DISPL_LBL_LEN, default=0):
         """Display graph and data point as text label
 
         This method will redraw the entire LCD
@@ -594,21 +594,23 @@ class Enviro:
                 'list' (optional) custom color map to use if data has defined 'limits'
             lblMaxLen:
                 'in' (optional) number of chars of label to display on top row
+            default:
+                'float' (optional) default value to use when replacing 'None' values
         """
 
-        def _scrub(data):
-            """Scrub 'None' from data"""
-            return [0 if i is None else i for i in data]
+        def _scrub(data, default=0):
+            """Scrub 'None' values from data"""
+            return [default if i is None else i for i in data]
 
         def _clamp(val, minVal=0, maxVal=1):
             """Clamp values to min/max range"""
             return min(max(float(minVal), float(val)), float(maxVal))
 
         def _scale(val, minMax, height):
-            """Scale value to fit on SenseHAT LED
+            """Scale value to fit on Enviro+ LCD
 
             This is similar to 'num_to_range()' in f451 Labs Common module,
-            but simplified for fitting values to SenseHAT LED display dimensions.
+            but simplified for fitting values to Enviro+ LCD display dimensions.
             """
             return float(val - minMax[0]) / float(minMax[1] - minMax[0]) * height
 
@@ -646,56 +648,42 @@ class Enviro:
         # there are not enough values to to fill display, we add 0's
         displWidth = self.displayWidth
         displHeight = self.displayHeight
-        subSet = _scrub(data.data[-displWidth:])
+        subSet = _scrub(data.data[-displWidth:], default)
         lenSet = min(displWidth, len(subSet))
 
         # Extend 'value' list as needed
         values = (
             subSet
             if lenSet == displWidth
-            else [0 for _ in range(displWidth - lenSet)] + subSet
+            else [default for _ in range(displWidth - lenSet)] + subSet
         )
 
         # Reserve space for progress bar? Then clear rest of display by 
         # 'painting' it black.
         yMin = 2 if (self.displProgress) else 0
-        vmin = min(values) if minMax is None else minMax[0]
-        vmax = max(values) if minMax is None else minMax[1]
+        vMin = min(values) if minMax is None else minMax[0]
+        vMax = max(values) if minMax is None else minMax[1]
+        fitted = [_scale(v, (vMin, vMax), displHeight - yMin) for v in values]
+
         self._draw.rectangle((0, yMin, displWidth, displHeight), RGB_BLACK)
 
-        useColorMap = all(data.limits)
+        # Get colors based on limits and color map? Or generate based on
+        # value itself compared to defined limits?
+        if all(data.limits):
+            colors = [_get_rgb_from_map(v, data.limits, colorMap) for v in values]
+        else:
+            # Scale incoming values to be between 0 and 1. We may need to clamp 
+            # values when values are outside min/max for current sub-set. This 
+            # can happen when original data set has more values than the chunk 
+            # that we display on the Enviro+ LCD.
+            scaled = [_clamp((v - vMin + 1) / (vMax - vMin + 1)) for v in values]
+            colors = [_get_rgb(v) for v in scaled]
 
-        # If we don't use color maps (with defined limits), the we need to 
-        # 'calculate' the RGB values. For that we need to scale incoming values 
-        # to be between 0 and 1. We may also need to clamp values when values 
-        # are outside min/max for current sub-set. This can happen when 
-        # original data set has more values than the chunk that we display 
-        # on the Enviro+ 0.96" LCD.
-        scaled = [(v - vmin + 1) / (vmax - vmin + 1) if v >= 0 else 0 for v in values]
-
-        for i in range(len(scaled)):
-            # Draw a 1-pixel wide rectangle of given color
-            if useColorMap:
-                self._draw.rectangle(
-                    (i, self.displTopBar, i + 1, displHeight), 
-                    _get_rgb_from_map(values[i], data.limits, colorMap)
-                )
-            else:
-                self._draw.rectangle(
-                    (i, self.displTopBar, i + 1, displHeight), 
-                    _get_rgb(scaled[i]) # type: ignore
-                )
-
-            # Draw and overlay a line graph in black
-            line_y = int(
-                displHeight
-                - (self.displTopBar + (scaled[i] * (displHeight - self.displTopBar)))
-                + self.displTopBar
-            )
+        for i in range(len(fitted)):
+            self._draw.rectangle((i, yMin + fitted[i], i + 1, displHeight), colors[i]) # type: ignore
             # --- DEBUG ---
-            print(f"L={line_y} : S={scaled[i]:.1f} : V={values[i]}")
+            print(f"F={fitted[i]:.1f} : V={values[i]:.1f} : C={colors[i]}")
             # -------------
-            self._draw.rectangle((i, line_y, i + 1, line_y + 1), RGB_BLACK)
 
         # Write the text at the top in black
         message = '{}: {:.1f} {}'.format(data.label[:lblMaxLen], values[-1], data.unit)

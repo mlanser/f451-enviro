@@ -662,28 +662,22 @@ class Enviro:
         yMin = 2 if (self.displProgress) else 0
         vmin = min(values) if minMax is None else minMax[0]
         vmax = max(values) if minMax is None else minMax[1]
-
-        colors = [(v - vmin + 1) / (vmax - vmin + 1) for v in values]
         self._draw.rectangle((0, yMin, displWidth, displHeight), RGB_BLACK)
 
-        for i in range(len(colors)):
-            # Convert the values to colors from red to blue
-            color = (1.0 - colors[i]) * 0.6
-            test = [int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0)]
-            test2 = _get_rgb(colors[i])
-            r, g, b = [int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0)]
-            r2, g2, b2 = _get_rgb(colors[i])
-            print(f"{r}:{g}:{b} - {r2}:{b2}:{g2}")
-            print(type(test2))
-            assert False
+        # Scale incoming values to be between 0 and 1. We may need to clamp 
+        # values when values are outside min/max for current sub-set. This 
+        # can happen when original data set has more values than the chunk 
+        # that we display on the Enviro+ 0.96" LCD.
+        scaled = [(v - vmin + 1) / (vmax - vmin + 1) for v in values]
 
+        for i in range(len(scaled)):
             # Draw a 1-pixel wide rectangle of given color
-            self._draw.rectangle((i, self.displTopBar, i + 1, displHeight), (r, g, b))
+            self._draw.rectangle((i, self.displTopBar, i + 1, displHeight), _get_rgb(scaled[i])) # type: ignore
 
             # Draw and overlay a line graph in black
             line_y = (
                 displHeight
-                - (self.displTopBar + (colors[i] * (displHeight - self.displTopBar)))
+                - (self.displTopBar + (scaled[i] * (displHeight - self.displTopBar)))
                 + self.displTopBar
             )
             self._draw.rectangle((i, line_y, i + 1, line_y + 1), RGB_BLACK)

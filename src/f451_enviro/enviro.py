@@ -692,6 +692,7 @@ class Enviro:
                 - (self.displTopBar + (scaled[i] * (displHeight - self.displTopBar)))
                 + self.displTopBar
             )
+            print(f"{line_y}:{scaled[i]}:{values[i]}")
             self._draw.rectangle((i, line_y, i + 1, line_y + 1), RGB_BLACK)
 
         # Write the text at the top in black

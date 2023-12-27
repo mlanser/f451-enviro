@@ -661,9 +661,14 @@ class Enviro:
         # Reserve space for progress bar? Then clear rest of display by 
         # 'painting' it black.
         yMin = 2 if (self.displProgress) else 0
-        vMin = min(values) if minMax is None else minMax[0]
-        vMax = max(values) if minMax is None else minMax[1]
-        fitted = [_scale(v, (vMin, vMax), displHeight - yMin) for v in values]
+        if minMax is None or minMax[1] == minMax[0]:
+            vMin = min(values) if minMax is None else minMax[0]
+            vMax = max(values) if minMax is None else minMax[1]
+        else:
+            vMin, vMax = minMax
+
+        # fitted = [_scale(v, (vMin, vMax), displHeight - yMin) for v in values]
+        fitted = [int(_clamp(_scale(v, (vMin, vMax), displHeight - yMin), yMin, displHeight)) for v in values]
 
         self._draw.rectangle((0, yMin, displWidth, displHeight), RGB_BLACK)
 
@@ -680,7 +685,7 @@ class Enviro:
             colors = [_get_rgb(v) for v in scaled]
 
         for i in range(len(fitted)):
-            self._draw.rectangle((i, yMin + fitted[i], i + 1, displHeight), colors[i]) # type: ignore
+            self._draw.rectangle((i, (displHeight + yMin - fitted[i]), i + 1, displHeight), colors[i]) # type: ignore
             # --- DEBUG ---
             print(f"F={fitted[i]:.1f} : V={values[i]:.1f} : C={colors[i]}")
             # -------------

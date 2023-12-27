@@ -348,7 +348,7 @@ def collect_data(app, data, timeCurrent):
 
     # --- Get magic data ---
     #
-    newData = app.sensors['FakeSensor'].get_demo_data(10)
+    newData = app.sensors['FakeSensor'].get_demo_data(2)
     #
     # ----------------------
 

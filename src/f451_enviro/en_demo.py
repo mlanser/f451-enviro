@@ -349,6 +349,7 @@ def collect_data(app, data, timeCurrent):
     # --- Get magic data ---
     #
     newData = app.sensors['FakeSensor'].get_demo_data(5)
+    newData.rndnum = 100
     #
     # ----------------------
 

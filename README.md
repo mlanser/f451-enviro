@@ -1,4 +1,4 @@
-# f451 Labs Enviro+ module v1.1.1
+# f451 Labs Enviro+ module v1.1.2
 
 ## Overview
 

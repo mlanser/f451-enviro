@@ -67,6 +67,7 @@ APP_MIN_PROG_WAIT = 1               # Remaining min (loop) wait time to display 
 APP_WAIT_1SEC = 1
 APP_MAX_DATA = 120                  # Max number of data points in the queue
 APP_DELTA_FACTOR = 0.02             # Any change within X% is considered negligable
+APP_TOPLBL_LEN = 5                  # Num chars of label to display in top bar
 
 APP_DATA_TYPES = ['number1', 'number2']
 
@@ -76,8 +77,6 @@ APP_DISPLAY_MODES = {
 }
 
 COLOR_LOGO = (255, 0, 0)
-
-APP_DISPL_LBL_LEN = 5               # Num chars of label to display in top bar
 
 class AppRT(f451Common.Runtime):
     def __init__(self, appName, appVersion, appNameShort=None, appLog=None, appSettings=None):
@@ -249,14 +248,14 @@ async def upload_demo_data(*args, **kwargs):
     await asyncio.gather(*sendQ)
 
 
-def update_Enviro_LCD(sense, data, colors=None):
-    """Update Sense HAT LED display depending on display mode
+def update_Enviro_LCD(enviro, data, colors=None):
+    """Update Enviro+ LCD depending on display mode
 
     We check current display mode and then prep data as needed
-    for display on LED.
+    for display on LCD.
 
     Args:
-        sense: hook to SenseHat object
+        enviro: hook to Enviro+ object
         data: full data set where we'll grab a slice from the end
         colors: (optional) custom color map
     """
@@ -274,20 +273,20 @@ def update_Enviro_LCD(sense, data, colors=None):
         return f451Common.get_tri_colors(colors, True) if all(data.limits) else None
 
     # Check display mode. Each mode corresponds to a data type
-    if sense.displMode == 1:
+    if enviro.displMode == 1:
         minMax = _minMax(data.rndnum.as_tuple().data)
         dataClean = f451Enviro.prep_data(data.rndnum.as_tuple())
         colorMap = _get_color_map(dataClean, colors)
-        sense.display_as_graph(dataClean, minMax, colorMap, APP_DISPL_LBL_LEN)
+        enviro.display_as_graph(dataClean, minMax, colorMap, APP_TOPLBL_LEN)
 
-    elif sense.displMode == 2:
+    elif enviro.displMode == 2:
         minMax = _minMax(data.rndpcnt.as_tuple().data)
         dataClean = f451Enviro.prep_data(data.rndpcnt.as_tuple())
         colorMap = _get_color_map(dataClean, colors)
-        sense.display_as_graph(dataClean, minMax, colorMap, APP_DISPL_LBL_LEN)
+        enviro.display_as_graph(dataClean, minMax, colorMap, APP_TOPLBL_LEN)
 
     else:  # Display sparkles
-        sense.display_sparkle()
+        enviro.display_sparkle()
 
 
 def init_cli_parser(appName, appVersion, setDefaults=True):

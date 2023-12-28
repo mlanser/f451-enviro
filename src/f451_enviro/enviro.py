@@ -298,7 +298,7 @@ class Enviro:
     Methods & Properties:
         displayWidth:       Width (pixels) of 0.96" LCD display
         displayHeight:      Height (pixels) of 0.96" LCD display
-        is_fake:            Return 'False' if physical Sense HAT
+        isFake:             'False' if physical Sense HAT
         get_CPU_temp:       Get CPU temp which we then can use to compensate temp reads
         get_proximity:      Get proximity value from sensor
         get_lux:            Get illumination value from sensor
@@ -373,6 +373,14 @@ class Enviro:
     def displayHeight(self):
         return self._LCD.height
 
+    @property
+    def isFake(self):
+        """Is this 'real' or 'fake' Enviro+?
+        
+        Returns 'True' if we use 'fake' Enviro+ libraries
+        """
+        return getattr(self._LCD, 'fake', False)
+
     def _init_LCD(self, **kwargs):
         """Initialize LCD on Enviro+"""
         st7735 = ST7735.ST7735(
@@ -387,8 +395,62 @@ class Enviro:
 
         return st7735
 
-    def is_fake(self):
-        return getattr(self._LCD, 'fake', False)
+    @staticmethod
+    def _scrub(data, default=0):
+        """Scrub 'None' values from data"""
+        return [default if i is None else i for i in data]
+
+    @staticmethod
+    def _clamp(val, minVal=0, maxVal=1):
+        """Clamp values to min/max range"""
+        return min(max(float(minVal), float(val)), float(maxVal))
+
+    @staticmethod
+    def _scale(val, minMax, height):
+        """Scale value to fit on Enviro+ LCD
+
+        This is similar to 'num_to_range()' in f451 Labs Common module,
+        but simplified for fitting values to Enviro+ LCD display dimensions.
+        """
+        if minMax is None or minMax[1] == minMax[0]:
+            return 0
+
+        return float(val - minMax[0]) / float(minMax[1] - minMax[0]) * height
+
+    @staticmethod
+    def _get_rgb(val):
+        """Get a color value using 'colorsys' library
+        
+        We use this method if there is no color map and/or 
+        no limits are defined for a give data set.
+        """
+        # Convert the values to colors from red to blue
+        color = (1.0 - val) * 0.6
+        return tuple(int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0))
+
+    @staticmethod
+    def _get_rgb_from_map(val, limits, colorMap):
+        """Get a color from color map based on limits
+        
+        This function maps a value against a color map. Note that 
+        we need to map an original value (as opposed to scaled value)
+        against the color map, as the color map limits use actual 
+        (full-scale) values.
+
+        Args:
+            val: value to map
+            limits: 'list' with limits
+            colorMap: named 'tuple' with color map
+
+        Returns:
+            'tuple' with RGB as '(R, G, B)'
+        """
+        if val > round(limits[2], 1):
+            return colorMap.high
+        elif val <= round(limits[1], 1):
+            return colorMap.low
+        else:
+            return colorMap.normal
 
     def get_CPU_temp(self, strict=True):
         """Get CPU temp
@@ -528,7 +590,7 @@ class Enviro:
             direction: pos/neg integer
             step180: if 'True' then we rotate full 180 degress each time
         """
-        if self.is_fake():
+        if self.isFake:
             return
 
         if step180:
@@ -553,14 +615,14 @@ class Enviro:
     # fmt: off
     def display_on(self):
         """Turn 'on' LCD display"""
-        if not self.is_fake():
+        if not self.isFake:
             self._LCD.display_on()
         self.displSleepMode = False     # Reset 'sleep mode' flag
         # self.display_blank()          # Clear LCD
 
     def display_off(self):
         """Turn 'off' LCD display"""
-        if not self.is_fake():
+        if not self.isFake:
             self.display_blank()        # Clear LCD
             self._LCD.display_off()
         self.displSleepMode = True      # Set 'sleep mode' flag
@@ -568,17 +630,17 @@ class Enviro:
     def display_blank(self):
         """Show clear/blank LCD"""
         # Skip this if we're in 'sleep' mode
-        if not (self.is_fake() or self.displSleepMode):
+        if not (self.isFake or self.displSleepMode):
             img = Image.new('RGB', (self._LCD.width, self._LCD.height), color=RGB_BLACK)
             self._LCD.display(img)
 
     def display_reset(self):
         """Reset and clear LCD"""
-        if not self.is_fake():
+        if not self.isFake:
             self.display_init()
     # fmt: on
 
-    def display_as_graph(self, data, minMax=None, colorMap=None, lblMaxLen=DISPL_LBL_LEN, default=0):
+    def display_as_graph(self, data, minMax=None, colorMap=None, lblLen=DISPL_LBL_LEN, default=0):
         """Display graph and data point as text label
 
         This method will redraw the entire LCD
@@ -594,57 +656,14 @@ class Enviro:
             minMax:
                 'tuple' with min/max values. If 'None' then calculate locally.
             colorMap:
-                'list' (optional) custom color map to use if data has defined 'limits'
-            lblMaxLen:
-                'in' (optional) number of chars of label to display on top row
+                'tuple' (optional) custom color map to use if data has defined 'limits'
+            lblLen:
+                'int' (optional) number of chars of label to display on top row
             default:
                 'float' (optional) default value to use when replacing 'None' values
         """
-
-        def _scrub(data, default=0):
-            """Scrub 'None' values from data"""
-            return [default if i is None else i for i in data]
-
-        def _clamp(val, minVal=0, maxVal=1):
-            """Clamp values to min/max range"""
-            return min(max(float(minVal), float(val)), float(maxVal))
-
-        def _scale(val, minMax, height):
-            """Scale value to fit on Enviro+ LCD
-
-            This is similar to 'num_to_range()' in f451 Labs Common module,
-            but simplified for fitting values to Enviro+ LCD display dimensions.
-            """
-            if minMax is None or minMax[1] == minMax[0]:
-                return 0
-
-            return float(val - minMax[0]) / float(minMax[1] - minMax[0]) * height
-
-        def _get_rgb(val):
-            """Get a color value using 'colorsys' library
-            
-            We use this method if there is no color map and/or 
-            no limits are defined for a give data set.
-            """
-            # Convert the values to colors from red to blue
-            color = (1.0 - val) * 0.6
-            return tuple(int(x * 255.0) for x in colorsys.hsv_to_rgb(color, 1.0, 1.0))
-
-        def _get_rgb_from_map(val, limits, colorMap):
-            # Map value against color map. Note that we're mapping original 
-            # value against the color map as the color map limits use
-            # actual full-scale values.
-            if val > round(limits[2], 1):
-                color = colorMap.high
-            elif val <= round(limits[1], 1):
-                color = colorMap.low
-            else:
-                color = colorMap.normal
-
-            return color
-
         # Skip this if we're in 'sleep' mode
-        if self.is_fake() or self.displSleepMode:
+        if self.isFake or self.displSleepMode:
             return
 
         # Create a list with 'displayWidth' num values. We add 0 (zero) to
@@ -654,7 +673,7 @@ class Enviro:
         # there are not enough values to to fill display, we add 0's
         displWidth = self.displayWidth
         displHeight = self.displayHeight
-        subSet = _scrub(data.data[-displWidth:], default)
+        subSet = self._scrub(data.data[-displWidth:], default)
         lenSet = min(displWidth, len(subSet))
 
         # Extend 'value' list as needed
@@ -675,48 +694,47 @@ class Enviro:
         else:
             vMin, vMax = minMax
 
-        fitted = [int(_clamp(_scale(v, (vMin, vMax), yMax), yMin, yMax)) for v in values]
-        # self._draw.rectangle((0, yMin, displWidth, yMax), RGB_BLACK)
+        fitted = [int(self._clamp(self._scale(v, (vMin, vMax), yMax), yMin, yMax)) for v in values]
         self._draw.rectangle((0, 0, displWidth, displHeight - 1 - yProg), RGB_BLACK)
 
         # Get colors based on limits and color map? Or generate based on
         # value itself compared to defined limits?
         if all(data.limits):
-            colors = [_get_rgb_from_map(v, data.limits, colorMap) for v in values]
+            colors = [self._get_rgb_from_map(v, data.limits, colorMap) for v in values]
         else:
             # Scale incoming values to be between 0 and 1. We may need to clamp 
             # values when values are outside min/max for current sub-set. This 
             # can happen when original data set has more values than the chunk 
             # that we display on the Enviro+ LCD.
-            scaled = [_clamp((v - vMin + 1) / (vMax - vMin + 1)) for v in values]
-            colors = [_get_rgb(v) for v in scaled]
+            scaled = [self._clamp((v - vMin + 1) / (vMax - vMin + 1)) for v in values]
+            colors = [self._get_rgb(v) for v in scaled]
 
         for i in range(len(fitted)):
             self._draw.rectangle((i, (displHeight - fitted[i]), i + 1, displHeight - 1 - yProg), colors[i]) # type: ignore
-            # --- DEBUG ---
-            # print(f"DH={displHeight} : F={fitted[i]:.1f} : V={values[i]:.1f} : C={colors[i]}")
-            # -------------
 
         # Write the text at the top in black
-        message = f'{data.label[:lblMaxLen]}: {values[-1]:.1f} {data.unit}'
+        message = f'{data.label[:lblLen]}: {values[-1]:.1f} {data.unit}'
         self._draw.text((0, 0), message, font=self._fontMD, fill=COLOR_TXT)
 
         self._LCD.display(self._img)
 
-    def display_as_text(self, data):
+    def display_as_text(self, data, colorMap=None, lblLen=DISPL_LBL_LEN):
         """Display data points as text in columns
 
         This method will redraw the entire LCD
 
         Args:
             data:
-                'list' of data rows where each row is a 'dict' as follows:
-                    {
-                        "data": [list of values],
-                        "unit" <unit string>,
-                        "label": <label string>,
-                        "limit": [list of limits]
-                    }
+                'DataUnit' named tuple with the following fields:
+                    data   = [list of values],
+                    valid  = <tuple with min/max>,
+                    unit   = <unit string>,
+                    label  = <label string>,
+                    limits = [list of limits]
+            colorMap:
+                'tuple' (optional) custom color map to use if data has defined 'limits'
+            lblLen:
+                'int' (optional) number of chars of label to display on top row
         """
         # Skip this if we're in 'sleep' mode
         if self.displSleepMode:
@@ -735,15 +753,18 @@ class Enviro:
             x = DEF_LCD_OFFSET_X + ((displWidth // cols) * (idx // rows))
             y = DEF_LCD_OFFSET_Y + ((displHeight / rows) * (idx % rows))
 
-            message = f"{item['label'][:4]}: {item['data'][-1]:.1f} {item['unit']}"
+            if all(item.limits):
+                rgb = self._get_rgb_from_map(item.data[-1], data.limits, colorMap)
+            else:
+                rgb = COLOR_TXT
+            # lim = item.limits
+            # rgb = COLOR_PALETTE[0]
 
-            lim = item['limits']
-            rgb = COLOR_PALETTE[0]
+            # for j in range(len(lim)):
+            #     if item.data[-1] > lim[j]:
+            #         rgb = COLOR_PALETTE[j + 1]
 
-            for j in range(len(lim)):
-                if item['data'][-1] > lim[j]:
-                    rgb = COLOR_PALETTE[j + 1]
-
+            message = f"{item.label[:lblLen]}: {item.data[-1]:.1f} {item.unit}"
             self._draw.text((x, y), message, font=self._fontSM, fill=rgb)
 
         # Display results
@@ -767,13 +788,14 @@ class Enviro:
         yProg = (PBAR_HEIGHT if (self.displProgress) else 0)
         self._draw.rectangle((0, 0, displWidth, displHeight - 1 - yProg), RGB_BLACK)
 
+        # How long is text?
+        txtLen = self._draw.textlength(str(msg), font=self._fontLG)
+
         # Draw message
         x = DEF_LCD_OFFSET_X
-
-        txtLen = self._draw.textlength(str(msg), font=self._fontLG)
         if txtLen >= displWidth:
             y = DEF_LCD_OFFSET_Y + int((displHeight - FONT_SIZE_LG * 2 - LINE_SPACING) / 2)    # ImageDraw default line spacing is 4px
-            splitMsg = '-\n'.join(str(msg).rsplit('-', 1))
+            splitMsg = '-\n'.join(str(msg).rsplit('-', 1))  # TODO: need better/smarter way to split text
             self._draw.multiline_text((x, y), splitMsg, font=self._fontLG, fill=color)
         else:
             y = DEF_LCD_OFFSET_Y + int((displHeight - FONT_SIZE_LG) / 2)

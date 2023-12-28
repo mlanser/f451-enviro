@@ -13,7 +13,7 @@ def main():
     enviro = Enviro({'ROTATION': 90, 'DISPLAY': 0, 'PROGRESS': 0, 'SLEEP': 600})
 
     # Skip display demos if we're using fake HAT
-    if not enviro.is_fake():
+    if not enviro.isFake:
         enviro.display_init()
 
         # Display text on LCD

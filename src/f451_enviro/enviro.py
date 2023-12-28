@@ -11,6 +11,7 @@ TODO: there are a few things that will be adeded as needed including:
  - method to display shapes
  - method to display scrolling text
  - method to display images
+ - more/better tests
 
 Dependencies:
  - fonts: https://pypi.org/project/fonts/
@@ -516,7 +517,7 @@ class Enviro:
 
         return data
 
-    def update_display_mode(self, direction):
+    def update_display_mode(self, direction=1):
         """Change LCD display mode
 
         Change the LED display mode and also wake
@@ -539,7 +540,7 @@ class Enviro:
             )
 
         # Wake up display?
-        if not self.displSleepMode:
+        if self.displSleepMode:
             self.display_on()
 
         # Clear the display

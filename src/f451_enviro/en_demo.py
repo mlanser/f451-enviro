@@ -75,6 +75,8 @@ APP_DISPLAY_MODES = {
     f451Enviro.KWD_DISPLAY_MAX: const.MAX_DISPL,
 }
 
+COLOR_LOGO = (255, 0, 0)
+
 APP_DISPL_LBL_LEN = 5               # Num chars of label to display in top bar
 
 class AppRT(f451Common.Runtime):
@@ -478,7 +480,8 @@ def main(cliArgs=None):  # sourcery skip: extract-method
         appRT.sensors['Enviro'].display_init(**APP_DISPLAY_MODES)
         appRT.sensors['Enviro'].update_sleep_mode(cliArgs.noLCD)
         appRT.sensors['Enviro'].displProgress = cliArgs.progress
-        appRT.sensors['Enviro'].display_message(APP_NAME)
+        appRT.sensors['Enviro'].display_message(APP_NAME, COLOR_LOGO)
+        time.sleep(5)
 
         # Add fake sensor
         appRT.add_sensor('FakeSensor', f451Common.FakeSensor)

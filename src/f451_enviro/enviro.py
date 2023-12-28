@@ -114,6 +114,8 @@ DISPL_TOP_Y = 2
 DISPL_TOP_BAR = 21              # Height (in px) of top bar
 DISPL_LBL_LEN = 4               # Num chars of label to display in top bar
 
+PBAR_HEIGHT = 2                 # Prgress bar height in pixels
+
 PROX_DEBOUNCE = 0.5             # Delay to debounce proximity sensor on 'tap'
 PROX_LIMIT = 1500               # Threshold for proximity sensor to detect 'tap'
 
@@ -151,6 +153,7 @@ COLOR_PBAR_BG = RGB_GREY_BLUE   # Default prog bar background
 FONT_SIZE_SM = 10               # Small font size
 FONT_SIZE_MD = 16               # Medium font size
 FONT_SIZE_LG = 20               # Large font size
+LINE_SPACING = 4                # Line spacing (in pixels) for ImageDraw multiline text
 
 ROTATE_90 = 90                  # Rotate 90 degrees
 ROTATE_180 = 180                # Rotate 180 degrees
@@ -663,8 +666,9 @@ class Enviro:
 
         # Reserve space for progress bar? Then clear rest of display by 
         # 'painting' it black.
-        yMin = DISPL_TOP_BAR + (2 if (self.displProgress) else 0)
-        yMax = displHeight - yMin
+        yProg = (PBAR_HEIGHT if (self.displProgress) else 0)
+        yMin = DISPL_TOP_BAR
+        yMax = displHeight - yMin - yProg
         if minMax is None or minMax[1] == minMax[0]:
             vMin = min(values) if minMax is None else minMax[0]
             vMax = max(values) if minMax is None else minMax[1]
@@ -673,7 +677,7 @@ class Enviro:
 
         fitted = [int(_clamp(_scale(v, (vMin, vMax), yMax), yMin, yMax)) for v in values]
         # self._draw.rectangle((0, yMin, displWidth, yMax), RGB_BLACK)
-        self._draw.rectangle((0, 0, displWidth, displHeight), RGB_BLACK)
+        self._draw.rectangle((0, 0, displWidth, displHeight - 1 - yProg), RGB_BLACK)
 
         # Get colors based on limits and color map? Or generate based on
         # value itself compared to defined limits?
@@ -688,14 +692,13 @@ class Enviro:
             colors = [_get_rgb(v) for v in scaled]
 
         for i in range(len(fitted)):
-            # self._draw.rectangle((i, (displHeight - fitted[i]), i + 1, displHeight - 1), colors[i]) # type: ignore
-            self._draw.rectangle((i, (displHeight - 80), i + 1, displHeight - 1), colors[i]) # type: ignore
+            self._draw.rectangle((i, (displHeight - fitted[i]), i + 1, displHeight - 1 - yProg), colors[i]) # type: ignore
             # --- DEBUG ---
-            print(f"F={fitted[i]:.1f} : V={values[i]:.1f} : C={colors[i]}")
+            # print(f"DH={displHeight} : F={fitted[i]:.1f} : V={values[i]:.1f} : C={colors[i]}")
             # -------------
 
         # Write the text at the top in black
-        message = '{}: {:.1f} {}'.format(data.label[:lblMaxLen], values[-1], data.unit)
+        message = f'{data.label[:lblMaxLen]}: {values[-1]:.1f} {data.unit}'
         self._draw.text((0, 0), message, font=self._fontMD, fill=COLOR_TXT)
 
         self._LCD.display(self._img)
@@ -720,15 +723,17 @@ class Enviro:
             return
 
         # Reserve space for progress bar?
-        yMin = 2 if (self.displProgress) else 0
-        self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)
+        displWidth = self.displayWidth
+        displHeight = self.displayHeight
+        yProg = (PBAR_HEIGHT if (self.displProgress) else 0)
+        self._draw.rectangle((0, 0, displWidth, displHeight - 1 - yProg), RGB_BLACK)
 
         cols = 2
         rows = len(data) / cols
 
         for idx, item in enumerate(data):
-            x = DEF_LCD_OFFSET_X + ((self._LCD.width // cols) * (idx // rows))
-            y = DEF_LCD_OFFSET_Y + ((self._LCD.height / rows) * (idx % rows))
+            x = DEF_LCD_OFFSET_X + ((displWidth // cols) * (idx // rows))
+            y = DEF_LCD_OFFSET_Y + ((displHeight / rows) * (idx % rows))
 
             message = f"{item['label'][:4]}: {item['data'][-1]:.1f} {item['unit']}"
 
@@ -744,7 +749,7 @@ class Enviro:
         # Display results
         self._LCD.display(self._img)
 
-    def display_message(self, msg):
+    def display_message(self, msg, color=COLOR_TXT):
         """Display text message
 
         This method will redraw the entire LCD
@@ -757,13 +762,22 @@ class Enviro:
             return
 
         # Reserve space for progress bar?
-        yMin = 2 if (self.displProgress) else 0
-        self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)
+        displWidth = self.displayWidth
+        displHeight = self.displayHeight
+        yProg = (PBAR_HEIGHT if (self.displProgress) else 0)
+        self._draw.rectangle((0, 0, displWidth, displHeight - 1 - yProg), RGB_BLACK)
 
         # Draw message
         x = DEF_LCD_OFFSET_X
-        y = DEF_LCD_OFFSET_Y + int((self._LCD.height - FONT_SIZE_LG) / 2)
-        self._draw.text((x, y), str(msg), font=self._fontLG, fill=COLOR_TXT)
+
+        txtLen = self._draw.textlength(str(msg), font=self._fontLG)
+        if txtLen >= displWidth:
+            y = DEF_LCD_OFFSET_Y + int((displHeight - FONT_SIZE_LG * 2 - LINE_SPACING) / 2)    # ImageDraw default line spacing is 4px
+            splitMsg = '-\n'.join(str(msg).rsplit('-', 1))
+            self._draw.multiline_text((x, y), splitMsg, font=self._fontLG, fill=color)
+        else:
+            y = DEF_LCD_OFFSET_Y + int((displHeight - FONT_SIZE_LG) / 2)
+            self._draw.text((x, y), str(msg), font=self._fontLG, fill=color)
 
         # Display results
         self._LCD.display(self._img)
@@ -781,12 +795,16 @@ class Enviro:
         if self.displSleepMode or not self.displProgress:
             return
 
+        displWidth = self.displayWidth
+        displHeight = self.displayHeight
+        yProg = self.displayHeight - PBAR_HEIGHT
+
         # Calculate X value. We ensure that we do not go over max width
         # of LCD by limiting any input value to a range of 0.0 - 1.0
-        x = int(max(min(float(inFrctn), 1.0), 0.0) * self._LCD.width)
+        x = int(max(min(float(inFrctn), 1.0), 0.0) * displWidth)
 
-        self._draw.rectangle((0, 0, self._LCD.width, 0), COLOR_BG)
-        self._draw.rectangle((0, 0, x, 0), COLOR_PBAR)
+        self._draw.rectangle((0, yProg, displWidth, displHeight - 1), COLOR_BG)
+        self._draw.rectangle((0, yProg + 1, x, displHeight - 1), COLOR_PBAR)
 
         # Display results
         self._LCD.display(self._img)
@@ -798,20 +816,22 @@ class Enviro:
             return
 
         # Reserve space for progress bar?
-        yMin = 2 if (self.displProgress) else 0
+        displWidth = self.displayWidth
+        displHeight = self.displayHeight
+        yProg = (PBAR_HEIGHT if (self.displProgress) else 0)
 
         # Create sparkles
-        x = randint(0, self._LCD.width - 1)
-        y = randint(yMin, self._LCD.height - 1)
+        x = randint(0, displWidth - 1)
+        y = randint(0, displHeight - 1 - yProg)
         r = randint(0, 255)
         g = randint(0, 255)
         b = randint(0, 255)
 
         # Do we want to clear the screen? Or add more sparkles?
-        maxSparkle = int(self._LCD.width * self._LCD.height * MAX_SPARKLE_PCNT)
+        maxSparkle = int(displWidth * displHeight * MAX_SPARKLE_PCNT)
         if randint(0, maxSparkle):
             self._draw.point((x, y), (r, g, b))
         else:
-            self._draw.rectangle((0, yMin, self._LCD.width, self._LCD.height), RGB_BLACK)
+            self._draw.rectangle((0, 0, displWidth, displHeight - 1 - yProg), RGB_BLACK)
 
         self._LCD.display(self._img)

@@ -562,6 +562,8 @@ class Enviro:
 
             newMode = self.displayModes[newModeIndx]
 
+        print(f"OLD: {self.displMode} - NEW: {newMode}")
+        print(self.displayModes)
         self.displMode = newMode
 
         # Wake up display?

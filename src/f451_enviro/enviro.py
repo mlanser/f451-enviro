@@ -656,8 +656,8 @@ class Enviro:
         """Show clear/blank LCD"""
         # Skip this if we're in 'sleep' mode
         if not (self.isFake or self.displSleepMode):
-            img = Image.new('RGB', (self._LCD.width, self._LCD.height), color=RGB_BLACK)
-            self._LCD.display(img)
+            self._img = Image.new('RGB', (self._LCD.width, self._LCD.height), color=RGB_BLACK)
+            self._draw = ImageDraw.Draw(self._img)
 
     def display_reset(self):
         """Reset and clear LCD"""

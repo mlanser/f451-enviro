@@ -793,13 +793,15 @@ class Enviro:
         # Display results
         self._LCD.display(self._img)
 
-    def display_message(self, msg, color=COLOR_TXT):
+    def display_message(self, msg, fgCol=None, bgCol=None):
         """Display text message
 
         This method will redraw the entire LCD
 
         Args:
             msg: 'str' with text to display
+            fgCol: 'tuple' with (R, G, B) for text color
+            bgCol: 'tuple' with (R, G, B) for background color
         """
         # Skip this if we're in 'sleep' mode
         if self.displSleepMode:
@@ -808,8 +810,12 @@ class Enviro:
         # Reserve space for progress bar?
         displWidth = self.displayWidth
         displHeight = self.displayHeight
+        
+        bgCol = bgCol or RGB_BLACK
+        fgCol = fgCol or RGB_WHITE
+
         yProg = (PBAR_HEIGHT if (self.displProgress) else 0)
-        self._draw.rectangle((0, 0, displWidth, displHeight - 1 - yProg), RGB_BLACK)
+        self._draw.rectangle((0, 0, displWidth, displHeight - 1 - yProg), bgCol)
 
         # How long is text?
         txtLen = self._draw.textlength(str(msg), font=self._fontLG)
@@ -819,10 +825,10 @@ class Enviro:
         if txtLen >= displWidth:
             y = DEF_LCD_OFFSET_Y + int((displHeight - FONT_SIZE_LG * 2 - LINE_SPACING) / 2)    # ImageDraw default line spacing is 4px
             splitMsg = '-\n'.join(str(msg).rsplit('-', 1))  # TODO: need better/smarter way to split text
-            self._draw.multiline_text((x, y), splitMsg, font=self._fontLG, fill=color)
+            self._draw.multiline_text((x, y), splitMsg, font=self._fontLG, fill=fgCol)
         else:
             y = DEF_LCD_OFFSET_Y + int((displHeight - FONT_SIZE_LG) / 2)
-            self._draw.text((x, y), str(msg), font=self._fontLG, fill=color)
+            self._draw.text((x, y), str(msg), font=self._fontLG, fill=fgCol)
 
         # Display results
         self._LCD.display(self._img)

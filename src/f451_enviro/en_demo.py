@@ -441,7 +441,7 @@ def main_loop(app, data):
             )
             # fmt: on
 
-            # Update Sense HAT prog bar as needed
+            # Update Enviro+ prog bar as needed
             app.sensors['Enviro'].display_progress(app.timeSinceUpdate / app.uploadDelay)
 
             # Do we need to wait for next sensor read? Or can 
@@ -507,7 +507,7 @@ def main(cliArgs=None):  # sourcery skip: extract-method
         appRT.sensors['Enviro'].update_sleep_mode(cliArgs.noLCD)
         appRT.sensors['Enviro'].displProgress = cliArgs.progress
 
-        appRT.sensors['SenseHat'].set_display_mode(
+        appRT.sensors['Enviro'].set_display_mode(
             cliArgs.dmode or appRT.config.get(f451Enviro.KWD_DISPLAY)
         )
 

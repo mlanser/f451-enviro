@@ -4,9 +4,6 @@ This class defines a data structure that can be used
 to manage misc. demo data. This object follows overall 
 design of Enviro+ Data object, but is customized for
 random demo data collected in the demo application.
-
-Dependencies:
-    TBD
 """
 
 from collections import deque
@@ -23,8 +20,8 @@ class DemoData:
     with the 'SystemData' and 'SenseData' classes.
 
     Attributes:
-        number1: random number
-        number2: random number
+        rndnum: random number
+        rndpcnt: random number
 
     Methods:
         as_list: returns a 'list' with data from each attribute as 'dict'
@@ -63,6 +60,6 @@ class DemoData:
 
     def as_dict(self):
         return {
-            'number1': self.rndnum.as_dict(),
-            'number2': self.rndpcnt.as_dict(),
+            'rndnum': self.rndnum.as_dict(),
+            'rndpcnt': self.rndpcnt.as_dict(),
         }

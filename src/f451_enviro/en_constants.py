@@ -9,11 +9,11 @@ keyword equivalents for attributes listed in the `settings.toml` file.
 # =========================================================
 #              M I S C .   C O N S T A N T S
 # =========================================================
-DEF_FREQ = 600              # Default delay between uploads in seconds
-DEF_DELAY = 300             # Default delay before first upload in seconds
-DEF_WAIT = 1                # Default delay between sensor reads
-DEF_THROTTLE = 120          # Default additional delay on 'ThrottlingError'
-DEF_ROUNDING = 2            # Default 'rounding' precision for uploaded data
+DEF_FREQ = 600                  # Default delay between uploads in seconds
+DEF_DELAY = 300                 # Default delay before first upload in seconds
+DEF_WAIT = 1                    # Default delay between sensor reads
+DEF_THROTTLE = 120              # Default additional delay on 'ThrottlingError'
+DEF_ROUNDING = 2                # Default 'rounding' precision for uploaded data
 # fmt: on
 
 
@@ -30,6 +30,6 @@ KWD_ROUNDING = 'ROUNDING'
 # =========================================================
 #   C O N S T A N T S   F O R   D I S P L A Y   M O D E S
 # =========================================================
-DISPL_RNDNUM = 'rndnum'     # Display random number
-DISPL_RNDPCNT = 'rndpcnt'   # Display random percentage
+DISPL_RNDNUM = 'rndnum'         # Display random number
+DISPL_RNDPCNT = 'rndpcnt'       # Display random percentage
 # fmt: on

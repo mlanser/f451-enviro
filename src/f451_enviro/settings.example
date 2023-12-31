@@ -6,6 +6,6 @@
 # =========================================================
 
 ROTATION = 90           # [0, 90, 180, 270] - default rotation for Enviro+ LCD
-DISPLAY = 0             # [0..10] - default display mode
+DISPLAY = 'sparkles'    # Default display mode
 PROGRESS = 0            # [0|1] - 1 = show upload progress bar on LCD
 SLEEP = 600             # Delay in seconds until screen is blanked

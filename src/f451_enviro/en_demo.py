@@ -72,7 +72,6 @@ APP_DELTA_FACTOR = 0.02             # Any change within X% is considered negliga
 APP_TOPLBL_LEN = 5                  # Num chars of label to display in top bar
 
 APP_DISPL_MODES = [ 
-    f451Enviro.DISPL_SPARKLE,       # Show 'sparkles' view
     const.DISPL_RNDNUM,             # Show 'rndnum' view
     const.DISPL_RNDPCNT,            # Show 'rndpcnt' view
 ]
@@ -81,6 +80,12 @@ COLOR_LOGO_FG = (255, 0, 0)
 COLOR_LOGO_BG = (0, 0, 0)
 
 class AppRT(f451Common.Runtime):
+    """Application runtime object.
+    
+    We use this object to store/manage configuration and any other variables
+    required to run this application as object attributes. This allows us to
+    have fewer global variables.
+    """
     def __init__(self, appName, appVersion, appNameShort=None, appLog=None, appSettings=None):
         super().__init__(
             appName, 
@@ -255,6 +260,17 @@ async def upload_demo_data(*args, **kwargs):
 
 
 def update_Enviro_LCD_display_mode(app, timeCurrent, proximity):
+    """Check 'proximity' value and uodate 'display mode'
+    
+    Unlike many other HATs, the Enviro+ add-on does not have any buttons 
+    or a joystick. However, we can use the lioght sensor to determine
+    'proximity' and then use that value to determine whether we want 
+    to switch display modes.
+
+    Args:
+        timeCurrent: time when we got proximity value
+        proximity: 'proximity' value to compare against set limit
+    """
     if (
         proximity > f451Enviro.PROX_LIMIT
         and (timeCurrent - app.displayUpdate) > f451Enviro.PROX_DEBOUNCE
@@ -301,7 +317,8 @@ def update_Enviro_LCD(enviro, data, colors=None):
         colorMap = _get_color_map(dataClean, colors)
         enviro.display_as_graph(dataClean, minMax, colorMap, APP_TOPLBL_LEN)
 
-    else:  # Display sparkles
+    # Or ... display sparkles :-)
+    else:  
         enviro.display_sparkle()
 
 
@@ -345,7 +362,6 @@ def init_cli_parser(appName, appVersion, setDefaults=True):
     parser.add_argument(
         '--dmode',
         action='store',
-        # type=int,
         help='display mode',
     )
 
@@ -469,9 +485,6 @@ def main(cliArgs=None):  # sourcery skip: extract-method
     main application loop.
 
     NOTE:
-     -  Application will exit with error level 1 if invalid Adafruit IO
-        or Arduino Cloud feeds are provided
-
      -  Application will exit with error level 0 if either no arguments
         are entered via CLI, or if arguments '-V' or '--version' are used.
         No data will be uploaded will be sent in that case.
@@ -518,6 +531,8 @@ def main(cliArgs=None):  # sourcery skip: extract-method
         appRT.add_sensor('FakeSensor', f451Common.FakeSensor)
 
     except KeyboardInterrupt:
+        appRT.sensors['Enviro'].display_reset()
+        appRT.sensors['Enviro'].display_off()
         print(f'{APP_NAME} (v{APP_VERSION}) - Session terminated by user')
         sys.exit(0)
 

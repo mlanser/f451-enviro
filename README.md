@@ -2,11 +2,11 @@
 
 ## Overview
 
-The *f451 Labs Enviro+* module encapsulates the drivers for the [*Pimoroni Enviro+* HAT](https://shop.pimoroni.com/products/enviro?variant=31155658457171) within a single class. This module provides a standard set of methods to read sensor data and display content to the onboard 0.96" LCD (160x80).
+The *f451 Labs Enviro+* module encapsulates the drivers for the [Pimoroni Enviro+ HAT](https://shop.pimoroni.com/products/enviro?variant=31155658457171) within a single class. This module provides a standard set of methods to read sensor data and display content to the onboard 0.96" LCD (160x80).
 
 ## Install
 
-This module is not (yet) available on PyPi. however, you can still use `pip` to install the module directly from Github (see below).
+This module is not (yet) available on PyPi. However, you can still use `pip` to install the module directly from Github (see below).
 
 ### Dependencies
 
@@ -16,7 +16,7 @@ This module is dependent on the following libraries:
 
 NOTE: Only install `enviroplus-python` library on a device that also has the physical Enviro+ HAT installed.
 
-NOTE: You can run this app in demo mode in (almost) any device even without the Enviro+ HAT. It will then create random numbers and can send output to the `logger` when log level is `DEBUG` or when `--debug` flag is used.
+NOTE: You can run this app in demo mode on (almost) any device even without the Enviro+ HAT. It will then create random numbers and can send output to the `logger` when log level is `DEBUG` or when `--debug` flag is used.
 
 ### Installing from Github using `pip`
 
@@ -40,7 +40,7 @@ from f451_enviro.enviro import Enviro
 # and LCD display on Enviro+
 myEnviro = Enviro({
     "ROTATION": 90,
-    "DISPLAY": 0,
+    "DISPLAY": 'sparkles',
     "PROGRESS": 0,
     "SLEEP": 600    
 })
@@ -60,7 +60,7 @@ The *f451 Labs Enviro+* module also includes an `EnviroData` object and a few ot
 from f451_enviro.enviro import EnviroData
 
 maxLen = 10     # Max length of queue
-defVal = 1      # Default value for initialization
+defVal = None   # Default value for initialization
 
 myData = EnviroData(defVal, maxlen)
 
@@ -69,6 +69,49 @@ myData = EnviroData(defVal, maxlen)
 myData.temperature.data.append(myEnviro.get_temperature())
 myData.pressure.data.append(myEnviro.get_pressure())
 myData.humidity.data.append(myEnviro.get_humidity())
+```
+
+### Enviro Module Demo
+
+The **f451 Labs Enviro** module includes a (fairly) comprehensive demo which you can launch as follows:
+
+```bash
+$ python -m f451_sensehat.en_demo [<options>]
+
+# If you have installed the 'f451 Labs Enviro' module 
+# using the 'pip install'
+$ en_demo [<options>]
+
+# Use CLI arg '-h' to see available options
+$ en_demo -h 
+```
+
+This demo does not display much in the console. Instead the focus is on displaying data on the Enviro+ 0.96" LCD. You can switch between different display modes by covering the light sensor for a fraction of a second.  
+
+You can also also adjust the settings in the `sh_demo_settings.toml` file. For example, if you change the `PROGRESS` setting to 1, then the Enviro+ LCD will display a progress bar indicating when the next (simulated) upload will happen.
+
+There is also a 'sleep mode' which turns off the display automatically after a certain amount of time. You can also turn on the LCD display back on by covering the light sensor again.
+
+```toml
+# File: sh_demo_settings.toml
+...
+PROGRESS = 1    # [0|1] - 1 = show upload progress bar on LCD
+SLEEP = 600     # Delay in seconds until screen is blanked
+...
+```
+
+Finally you can exit the application using the `ctrl-c` command. If you use the `--uploads N` commandline argument, then the application will stop after *N* (simulated) uploads.
+
+```bash
+# Stop after 10 uploads
+$ en_demo --uploads 10
+
+# Show 'progress bar' regardless of setting in 'toml' file
+$ en_demo --progress
+
+# Show specific display mode (e.g. 'rndpcnt') regardless 
+# of setting in 'toml' file
+$ en_demo --dmode rndpcnt
 ```
 
 ## How to test

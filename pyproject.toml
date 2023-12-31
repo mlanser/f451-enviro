@@ -41,7 +41,7 @@ f451_enviro = "f451_enviro.__main__:main"
 en_demo = "f451_enviro.en_demo:main"
 
 [tool.bumpver]
-current_version = "1.2.0"
+current_version = "1.2.1"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 tag_message = "{new_version}"

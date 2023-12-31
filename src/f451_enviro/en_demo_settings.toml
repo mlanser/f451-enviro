@@ -15,7 +15,7 @@ LOGLVL = 30             # 10 - DEBUG, 20 - INFO, 30 - WARNING, 40 - ERROR, 50 - 
 
 # - Enviro -
 ROTATION = 90           # [0, 90, 180, 270] - default rotation for Enviro+ LCD
-DISPLAY = 1             # [0..3] - default display mode
+DISPLAY = "sparkles"    # Default display mode
 PROGRESS = 0            # [0|1] - 1 = show upload progress bar on LCD
 SLEEP = 600             # Delay in seconds until screen is blanked
 

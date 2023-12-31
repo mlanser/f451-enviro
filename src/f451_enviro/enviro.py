@@ -87,6 +87,7 @@ __all__ = [
     'Enviro',
     'EnviroError',
     'prep_data',
+    'DISPL_SPARKLE',
     'KWD_ROTATION',
     'KWD_DISPLAY',
     'KWD_PROGRESS',
@@ -102,7 +103,6 @@ __all__ = [
 #              M I S C .   C O N S T A N T S
 # =========================================================
 DEF_ROTATION = 0                # Default display rotation
-DEF_DISPL_MODE = 0              # Default display mode
 DEF_SLEEP = 600                 # Default time to sleep (in seconds)
 DEF_LCD_OFFSET_X = 1            # Default horizontal offset for LCD
 DEF_LCD_OFFSET_Y = 1            # Default vertical offseet for LCD
@@ -120,7 +120,8 @@ PBAR_HEIGHT = 2                 # Prgress bar height in pixels
 PROX_DEBOUNCE = 0.5             # Delay to debounce proximity sensor on 'tap'
 PROX_LIMIT = 1500               # Threshold for proximity sensor to detect 'tap'
 
-MAX_SPARKLE_PCNT = 0.1          # 10% sparkles
+DISPL_SPARKLE = 'sparkles'      # Name of 'sparkles' view :-)
+MAX_SPARKLE_PCNT = 0.05         # 5% sparkles
 
 RGB_BLACK = (0, 0, 0)
 RGB_WHITE = (255, 255, 255)
@@ -158,7 +159,6 @@ LINE_SPACING = 4                # Line spacing (in pixels) for ImageDraw multili
 
 ROTATE_90 = 90                  # Rotate 90 degrees
 ROTATE_180 = 180                # Rotate 180 degrees
-STEP_1 = 1                      # Display mode step
 
 
 # =========================================================
@@ -168,8 +168,6 @@ KWD_ROTATION = 'ROTATION'
 KWD_DISPLAY = 'DISPLAY'
 KWD_PROGRESS = 'PROGRESS'
 KWD_SLEEP = 'SLEEP'
-KWD_DISPLAY_MIN = 'DISPLAYMIN'
-KWD_DISPLAY_MAX = 'DISPLAYMAX'
 
 KWD_DISPLAY_TOP_X = 'TOP_X'
 KWD_DISPLAY_TOP_Y = 'TOP_Y'
@@ -289,7 +287,7 @@ class Enviro:
 
     Attributes:
         ROTATION:   Default rotation for LCD display - [0, 90, 180, 270]
-        DISPLAY:    Default display mode [0...]
+        DISPLAY:    Default display mode
         PROGRESS:   Show progress bar - [0 = no, 1 = yes]
         SLEEP:      Number of seconds until LCD goes to screen saver mode
         TOP_X:      X coordinate for top-left corner on LCD
@@ -308,7 +306,8 @@ class Enviro:
         get_temperature:    Get temperature from sensor
         get_gas_data:       Get gas data from sensor
         get_particles:      Get particle data from sensor
-        update_display_mode: Switch display mode
+        add_display_modes:  Add one or more display modes to the list
+        set_display_mode:   Switch display mode
         update_sleep_mode:  Switch to/from sleep mode
         display_init:       Initialize display so we can draw on it
         display_rotate:     Rotate display +/- 90 degrees
@@ -348,11 +347,10 @@ class Enviro:
         self._LCD = self._init_LCD(**settings)  # ST7735 0.96" 160x80 LCD
 
         self.displRotation = settings.get(KWD_ROTATION, DEF_ROTATION)
-        self.displMode = settings.get(KWD_DISPLAY, DEF_DISPL_MODE)
         self.displProgress = bool(settings.get(KWD_PROGRESS, STATUS_ON))
 
-        self.displModeMin = settings.get(KWD_DISPLAY_MIN, 0)
-        self.displModeMax = settings.get(KWD_DISPLAY_MAX, 0)
+        self.displayModes = [DISPL_SPARKLE]
+        self.displMode = DISPL_SPARKLE
 
         self.displSleepTime = settings.get(KWD_SLEEP, DEF_SLEEP)
         self.displSleepMode = False
@@ -517,34 +515,61 @@ class Enviro:
 
         return data
 
-    def update_display_mode(self, direction=1):
-        """Change LCD display mode
+    def add_displ_modes(self, modes):
+        """Add list of display modes to existing list
+        
+        We combine the lists, convert them to a set to ensure that
+        there are no duplicates, and then convert back to a list.
+
+        Args:
+            modes: list of one or more view names
+        """
+        # If it's a single string, then we'll assume it's the name
+        # of a new view and we'll convert it to alist with 1 item.
+        if isinstance(modes, str):
+            modes = [modes]
+        
+        self.displayModes = list(set(self.displayModes + modes))
+
+    def set_display_mode(self, mode):
+        """Change LED display mode
 
         Change the LED display mode and also wake
         up the display if needed.
 
         Args:
-            direction: pos/neg integer
+            mode: if pos/neg int, then move to next/prev view/mode
+                  if string, then move to specific view/mode
+
         """
-        if int(direction) < 0:
-            self.displMode = (
-                self.displModeMax
-                if self.displMode <= self.displModeMin
-                else self.displMode - STEP_1
-            )
-        else:
-            self.displMode = (
-                self.displModeMin
-                if self.displMode >= self.displModeMax
-                else self.displMode + STEP_1
-            )
+        newMode = DISPL_SPARKLE
+
+        # Did we get a string? Check if it's a valid view.
+        if isinstance(mode, str) and mode in self.displayModes:
+            newMode = mode
+
+        # Or did we get 'direction' ? Then loop to prev/next view.
+        elif isinstance(mode, int):
+            displMax = max(0, len(self.displayModes) - 1)
+            
+            newModeIndx = self.displayModes.index(self.displMode)
+            newModeIndx += (-1 if int(mode) < 0 else 1)
+
+            if newModeIndx > displMax:
+                newModeIndx = 0
+            elif newModeIndx < 0:
+                newModeIndx = displMax
+
+            newMode = self.displayModes[newModeIndx]
+
+        self.displMode = newMode
 
         # Wake up display?
         if self.displSleepMode:
             self.display_on()
 
         # Clear the display
-        # self._SENSE.clear()
+        self.display_blank()
 
     def update_sleep_mode(self, *args):
         """Enable or disable LCD sleep mode
@@ -568,11 +593,8 @@ class Enviro:
         do this regardless of sleep mode.
 
         Args:
-            kwargs: optional values for displayMode min/max values
+            kwargs: reserved for future extension
         """
-        self.displModeMin = kwargs.get(KWD_DISPLAY_MIN, self.displModeMin)
-        self.displModeMax = kwargs.get(KWD_DISPLAY_MAX, self.displModeMax)
-        
         self._img = Image.new('RGB', (self._LCD.width, self._LCD.height), color=RGB_BLACK)
         self._draw = ImageDraw.Draw(self._img)
         self._fontLG = ImageFont.truetype(RobotoMedium, FONT_SIZE_LG)

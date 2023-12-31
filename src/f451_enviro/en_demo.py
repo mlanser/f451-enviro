@@ -1,27 +1,30 @@
 #!/usr/bin/env python3
-"""Demo application showcasing the f451 Labs SenseHat module.
+"""Demo application showcasing the f451 Labs Enviro+ module.
 
 This application is designed to demo core features of the CLI UI library. It simulates
 'sensor' data by generating random values and then displaying them in the terminal.
 
 To launch this application from terminal:
 
-    $ python -m sh_demo
+    $ python -m en_demo
 
 It's also possible to install this package via 'pip' from Github and one can then launch 
 this application as follows:
 
-    $ sh_demo
+    $ en_demo
 
 NOTE: This application will NOT upload any data to the cloud.
 
-NOTE: This application requires a physical Raspberry Pi Sense HAT add-on.
+NOTE: This application requires a physical Pimoroni Enviro+ add-on.
 
 NOTE: This application depends on the 'f451-common' library
 
 TODO:
-    - add more 8x8 images
-    - add more demo data feeds
+ - add more demo data feeds
+ - add more/better tests
+
+Dependencies:
+ - rich - for basic console output
 """
 
 import time
@@ -36,7 +39,6 @@ from pathlib import Path
 from . import en_constants as const
 from . import en_demo_data as f451DemoData
 
-# import f451_common.cli_ui as f451CLIUI
 import f451_common.common as f451Common
 import f451_common.logger as f451Logger
 
@@ -69,14 +71,14 @@ APP_MAX_DATA = 120                  # Max number of data points in the queue
 APP_DELTA_FACTOR = 0.02             # Any change within X% is considered negligable
 APP_TOPLBL_LEN = 5                  # Num chars of label to display in top bar
 
-APP_DATA_TYPES = ['number1', 'number2']
+APP_DISPL_MODES = [ 
+    f451Enviro.DISPL_SPARKLE,       # Show 'sparkles' view
+    const.DISPL_RNDNUM,             # Show 'rndnum' view
+    const.DISPL_RNDPCNT,            # Show 'rndpcnt' view
+]
 
-APP_DISPLAY_MODES = {
-    f451Enviro.KWD_DISPLAY_MIN: const.MIN_DISPL,
-    f451Enviro.KWD_DISPLAY_MAX: const.MAX_DISPL,
-}
-
-COLOR_LOGO = (255, 0, 0)
+COLOR_LOGO_FG = (255, 0, 0)
+COLOR_LOGO_BG = (0, 0, 0)
 
 class AppRT(f451Common.Runtime):
     def __init__(self, appName, appVersion, appNameShort=None, appLog=None, appSettings=None):
@@ -90,6 +92,20 @@ class AppRT(f451Common.Runtime):
             Path(__file__).parent   # Find dir for this app
         )
         
+    def _init_log_settings(self, cliArgs):
+        """Helper for setting logger settings"""
+        if cliArgs.debug:
+            self.logLvl = f451Logger.LOG_DEBUG
+            self.debugMode = True
+        else:
+            self.logLvl = self.config.get(f451Logger.KWD_LOG_LEVEL, f451Logger.LOG_NOTSET)
+            self.debugMode = (self.logLvl == f451Logger.LOG_DEBUG)
+
+        self.logger.set_log_level(self.logLvl)
+
+        if cliArgs.log is not None:
+            self.logger.set_log_file(appRT.logLvl, cliArgs.log)
+
     def init_runtime(self, cliArgs, data):
         """Initialize the 'runtime' variable
         
@@ -113,18 +129,8 @@ class AppRT(f451Common.Runtime):
         self.ioRounding = self.config.get(const.KWD_ROUNDING, const.DEF_ROUNDING)
         self.ioUploadAndExit = False
 
-        # Update log file or level?
-        if cliArgs.debug:
-            self.logLvl = f451Logger.LOG_DEBUG
-            self.debugMode = True
-        else:
-            self.logLvl = self.config.get(f451Logger.KWD_LOG_LEVEL, f451Logger.LOG_NOTSET)
-            self.debugMode = (self.logLvl == f451Logger.LOG_DEBUG)
-
-        self.logger.set_log_level(self.logLvl)
-
-        if cliArgs.log is not None:
-            self.logger.set_log_file(appRT.logLvl, cliArgs.log)
+        # Initialize log file/level
+        self._init_log_settings(cliArgs)
 
         # Initialize various counters, etc.
         self.timeSinceUpdate = float(0)
@@ -248,6 +254,16 @@ async def upload_demo_data(*args, **kwargs):
     await asyncio.gather(*sendQ)
 
 
+def update_Enviro_LCD_display_mode(app, timeCurrent, proximity):
+    if (
+        proximity > f451Enviro.PROX_LIMIT
+        and (timeCurrent - app.displayUpdate) > f451Enviro.PROX_DEBOUNCE
+    ):
+        app.sensors['Enviro'].set_display_mode(1)
+        app.sensors['Enviro'].update_sleep_mode(False)
+        app.displayUpdate = timeCurrent
+
+
 def update_Enviro_LCD(enviro, data, colors=None):
     """Update Enviro+ LCD depending on display mode
 
@@ -273,13 +289,13 @@ def update_Enviro_LCD(enviro, data, colors=None):
         return f451Common.get_tri_colors(colors, True) if all(data.limits) else None
 
     # Check display mode. Each mode corresponds to a data type
-    if enviro.displMode == 1:
+    if enviro.displMode == const.DISPL_RNDNUM:
         minMax = _minMax(data.rndnum.as_tuple().data)
         dataClean = f451Enviro.prep_data(data.rndnum.as_tuple())
         colorMap = _get_color_map(dataClean, colors)
         enviro.display_as_graph(dataClean, minMax, colorMap, APP_TOPLBL_LEN)
 
-    elif enviro.displMode == 2:
+    elif enviro.displMode == const.DISPL_RNDPCNT:
         minMax = _minMax(data.rndpcnt.as_tuple().data)
         dataClean = f451Enviro.prep_data(data.rndpcnt.as_tuple())
         colorMap = _get_color_map(dataClean, colors)
@@ -326,6 +342,12 @@ def init_cli_parser(appName, appVersion, setDefaults=True):
         default=-1,
         help='number of uploads before exiting',
     )
+    parser.add_argument(
+        '--dmode',
+        action='store',
+        type=int,
+        help='display mode',
+    )
 
     return parser
     # fmt: on
@@ -350,6 +372,7 @@ def collect_data(app, data, timeCurrent):
     # --- Get magic data ---
     #
     newData = app.sensors['FakeSensor'].get_demo_data(2)
+    proximity = app.sensors['Enviro'].get_proximity()
     #
     # ----------------------
 
@@ -378,6 +401,9 @@ def collect_data(app, data, timeCurrent):
         finally:
             app.timeUpdate = timeCurrent
             exitApp = (app.maxUploads > 0) and (app.numUploads >= app.maxUploads)
+
+    # Check 'proximity' value to determine when to toggle display mode
+    update_Enviro_LCD_display_mode(app, timeCurrent, proximity)
 
     # Update data set and display to terminal as needed
     data.rndnum.data.append(newData.rndnum)
@@ -473,13 +499,19 @@ def main(cliArgs=None):  # sourcery skip: extract-method
 
     try:
         # Initialize device instance which includes all sensors
-        # and LED display on Sense HAT. Also initialize joystick
-        # events and set 'sleep' and 'display' modes.
+        # and 0.96" LCD on Enviro+. Also initialize display, and 
+        # set 'sleep' and 'display' modes.
         appRT.add_sensor('Enviro', f451Enviro.Enviro)
-        appRT.sensors['Enviro'].display_init(**APP_DISPLAY_MODES)
+        appRT.sensors['Enviro'].display_init()
+        appRT.sensors['Enviro'].add_displ_modes(APP_DISPL_MODES)
         appRT.sensors['Enviro'].update_sleep_mode(cliArgs.noLCD)
         appRT.sensors['Enviro'].displProgress = cliArgs.progress
-        appRT.sensors['Enviro'].display_message(APP_NAME, COLOR_LOGO)
+
+        appRT.sensors['SenseHat'].set_display_mode(
+            cliArgs.dmode or appRT.config.get(f451Enviro.KWD_DISPLAY)
+        )
+
+        appRT.sensors['Enviro'].display_message(APP_NAME, COLOR_LOGO_FG, COLOR_LOGO_BG)
         time.sleep(5)
 
         # Add fake sensor

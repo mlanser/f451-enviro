@@ -1,4 +1,4 @@
-"""Global constants for f451 Labs SenseHat Demo application
+"""Global constants for f451 Labs Enviro+ Demo application
 
 This module holds all global constants used within the components of the 
 f451 Labs SenseHat Demo applications Some of the constants are used as 
@@ -30,10 +30,6 @@ KWD_ROUNDING = 'ROUNDING'
 # =========================================================
 #   C O N S T A N T S   F O R   D I S P L A Y   M O D E S
 # =========================================================
-DISPL_SPARKLE = 0           # Display sparkles
-DISPL_NUMBER_1 = 1          # Display download or temp
-DISPL_NUMBER_2 = 2          # Display upload or pressure
-
-MIN_DISPL = DISPL_SPARKLE   # Cannot be smaller than smallest DISPL_xx value
-MAX_DISPL = 2               # Cannot be larger than largest DISPL_xx value
+DISPL_RNDNUM = 'rndnum'     # Display random number
+DISPL_RNDPCNT = 'rndpcnt'   # Display random percentage
 # fmt: on

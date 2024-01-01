@@ -297,7 +297,7 @@ class Enviro:
     Methods & Properties:
         displayWidth:       Width (pixels) of 0.96" LCD display
         displayHeight:      Height (pixels) of 0.96" LCD display
-        isFake:             'False' if physical Sense HAT
+        isFake:             'False' if physical Enviro+
         get_CPU_temp:       Get CPU temp which we then can use to compensate temp reads
         get_proximity:      Get proximity value from sensor
         get_lux:            Get illumination value from sensor

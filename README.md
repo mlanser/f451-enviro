@@ -116,7 +116,7 @@ $ en_demo --dmode rndpcnt
 
 ## How to test
 
-The tests are written for [pytest](https://docs.pytest.org/en/7.1.x/contents.html) and we use markers to separate out tests that require the actual Sense HAT hardware. Some tests do not rely on the hardware to be prexent. However, those tests rely on the `pytest-mock` module to be present.
+The tests are written for [pytest](https://docs.pytest.org/en/7.1.x/contents.html) and we use markers to separate out tests that require the actual Sense HAT hardware. Some tests do not rely on the hardware to be present. However, those tests rely on the `pytest-mock` module to be present.
 
 ```bash
 

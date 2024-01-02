@@ -66,8 +66,8 @@ class EnviroObject:
             'data': self.data,
             'valid': self.valid,
             'unit': self.unit,
-            'limits': self.limits,
             'label': self.label.capitalize(),
+            'limits': self.limits,
         }
 
     def as_tuple(self):
@@ -111,8 +111,8 @@ class TemperatureObject(EnviroObject):
             'data': data,
             'valid': self.valid,
             'unit': self.unit,
-            'limits': self.limits,
             'label': self.label.capitalize(),
+            'limits': self.limits,
         }
 
     def as_tuple(self):

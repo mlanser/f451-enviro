@@ -741,21 +741,19 @@ class Enviro:
 
         self._LCD.display(self._img)
 
-    def display_as_text(self, data, colorMap=None, lblLen=DISPL_LBL_LEN):
+    def display_as_text(self, data, lblLen=DISPL_LBL_LEN):
         """Display data points as text in columns
 
         This method will redraw the entire LCD
 
         Args:
             data:
-                'DataUnit' named tuple with the following fields:
-                    data   = [list of values],
-                    valid  = <tuple with min/max>,
-                    unit   = <unit string>,
+                'list' of 'dict' objects with following fields:
+                    dataPt   = [list of values],
                     label  = <label string>,
-                    limits = [list of limits]
-            colorMap:
-                'tuple' (optional) custom color map to use if data has defined 'limits'
+                    unit   = <unit string>,
+                    limits =  to use if data has defined 'limits'
+                    colorMap = 'tuple' (optional) custom color map
             lblLen:
                 'int' (optional) number of chars of label to display on top row
         """
@@ -776,8 +774,8 @@ class Enviro:
             x = DEF_LCD_OFFSET_X + ((displWidth // cols) * (idx // rows))
             y = DEF_LCD_OFFSET_Y + ((displHeight / rows) * (idx % rows))
 
-            if all(item.limits):
-                rgb = self._get_rgb_from_map(item.data[-1], data.limits, colorMap)
+            if all(item['limits']):
+                rgb = self._get_rgb_from_map(item['dataPt'], item['limits'], item['colorMap'])
             else:
                 rgb = COLOR_TXT
             # lim = item.limits
@@ -787,7 +785,7 @@ class Enviro:
             #     if item.data[-1] > lim[j]:
             #         rgb = COLOR_PALETTE[j + 1]
 
-            message = f"{item.label[:lblLen]}: {item.data[-1]:.1f} {item.unit}"
+            message = f"{item['label'][:lblLen]}: {item['dataPt']:.1f} {item['unit']}"
             self._draw.text((x, y), message, font=self._fontSM, fill=rgb)
 
         # Display results

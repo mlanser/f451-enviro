@@ -117,7 +117,7 @@ DISPL_LBL_LEN = 4               # Num chars of label to display in top bar
 
 PBAR_HEIGHT = 2                 # Prgress bar height in pixels
 
-PROX_DEBOUNCE = 0.5             # Delay to debounce proximity sensor on 'tap'
+PROX_DEBOUNCE = 0.2             # Delay to debounce proximity sensor on 'tap'
 PROX_LIMIT = 1500               # Threshold for proximity sensor to detect 'tap'
 
 DISPL_SPARKLE = 'sparkles'      # Name of 'sparkles' view :-)

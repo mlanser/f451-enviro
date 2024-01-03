@@ -58,7 +58,7 @@ install_rich_traceback(show_locals=True)
 # =========================================================
 #          G L O B A L S   A N D   H E L P E R S
 # =========================================================
-APP_VERSION = '1.2.1'
+APP_VERSION = '1.2.2'
 APP_NAME = 'f451 Labs - Enviro+ Demo'
 APP_NAME_SHORT = 'EN Demo'
 APP_LOG = 'f451-enviro-demo.log'    # Individual logs for devices with multiple apps

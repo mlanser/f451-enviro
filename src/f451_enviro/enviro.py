@@ -778,12 +778,6 @@ class Enviro:
                 rgb = self._get_rgb_from_map(item['dataPt'], item['limits'], item['colorMap'])
             else:
                 rgb = COLOR_TXT
-            # lim = item.limits
-            # rgb = COLOR_PALETTE[0]
-
-            # for j in range(len(lim)):
-            #     if item.data[-1] > lim[j]:
-            #         rgb = COLOR_PALETTE[j + 1]
 
             message = f"{item['label'][:lblLen]}: {item['dataPt']:.1f} {item['unit']}"
             self._draw.text((x, y), message, font=self._fontSM, fill=rgb)
